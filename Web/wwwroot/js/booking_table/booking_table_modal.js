@@ -219,7 +219,7 @@ async function fetchBookingTableData(courseId) {
     }
 }
 
-// 排成掃描檢查local storage是否有booking的時間戳
+// 排程掃描檢查local storage是否有booking的時間戳
 setInterval(() => {
     const currentTimestamp = Date.now();
     const selectedBookingTimeStamp = localStorage.getItem("selectedBookingTimeStamp");
