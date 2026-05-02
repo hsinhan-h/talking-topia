@@ -9,6 +9,7 @@ namespace Web.Services
     public class BookingService
     {
         private readonly IRepository _repository;
+        public List<string> couresImagesList { get; set; }
         public BookingService(IRepository repository)
         {
             _repository = repository;
@@ -125,15 +126,15 @@ namespace Web.Services
         public async Task<CourseDataViewModel> GetPublishCourse(int MemberId, int CourseId)
         {
             // 將 courseImg 實體化為 List<CouresImagesViewModel>
-            var courseImg = (from img in _repository.GetAll<Web.Entities.CourseImage>()
+            var courseImg =await (from img in _repository.GetAll<Web.Entities.CourseImage>()
                              join course in _repository.GetAll<Web.Entities.Course>() on img.CourseId equals course.CourseId
                              where course.TutorId == MemberId && course.CourseId == CourseId
                              select new CouresImagesVM
                              {
-                                 CourseImageId = img.CourseId,
-                                 CourseId = course.CourseId,
                                  ImageUrl = img.ImageUrl
-                             });  // 確保 courseImg 是 List<CouresImagesViewModel>
+                             }).ToListAsync();  // 確保 courseImg 是 List<CouresImagesViewModel>
+
+            couresImagesList = courseImg.Select(x => x.ImageUrl).ToList();
 
             var bookingValue = from course in _repository.GetAll<Web.Entities.Course>()
                                join category in _repository.GetAll<Web.Entities.CourseCategory>() on course.CategoryId equals category.CourseCategoryId
@@ -173,6 +174,7 @@ namespace Web.Services
                                    SubjectId = subject.SubjectId,
                                    //CategoryId = course.CategoryId,
                                    CoursesStatus = course.CoursesStatus,
+                                   CouresImagesList = couresImagesList
                                };
 
             return new CourseDataViewModel()
@@ -210,11 +212,20 @@ namespace Web.Services
                 BookingTime = bookingTime,
                 StudentId = studentId,
                 Cdate = DateTime.Now,
-                Udate = DateTime.Now
+                Udate = DateTime.Now,
+                NotifyCount = 0
             };
             _repository.Create(booking);
             _repository.SaveChanges();
         }
+
+        public async Task UpdateBookingAsync(Booking booking)
+        {
+            _repository.Update(booking);
+            await _repository.SaveChangesAsync();
+        }
+
+
         /// <summary>
         /// 課程新增或修改
         /// </summary>
@@ -325,6 +336,13 @@ namespace Web.Services
                     SubjectId = s.SubjectId,
                     SubjectName = s.SubjectName
                 }).ToList();
+        }
+
+        public async Task<List<Booking>> GetBookingsByDateAsync(DateTime date)
+        {
+            return await _repository.GetAll<Booking>()
+                .Where(b => b.BookingDate == date)
+                .ToListAsync();
         }
     }
 }

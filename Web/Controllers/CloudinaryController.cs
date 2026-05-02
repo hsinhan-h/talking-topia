@@ -16,7 +16,11 @@ namespace Web.Controllers
         {
             return View();
         }
-
+        /// <summary>
+        /// 給上傳圖片測試使用(有View畫面)
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> Upload(IFormFile image)
         {

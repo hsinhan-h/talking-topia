@@ -16,6 +16,7 @@ public partial class TalkingTopiaDbContext : DbContext
         _configuration = configuration;
     }
 
+
     public virtual DbSet<ApplyCourse> ApplyCourses { get; set; }
 
     public virtual DbSet<ApplyCourseCategory> ApplyCourseCategories { get; set; }
@@ -152,6 +153,10 @@ public partial class TalkingTopiaDbContext : DbContext
             entity.Property(e => e.ApplyId)
                 .HasComment("申請Id")
                 .HasColumnName("ApplyID");
+            entity.Property(e => e.AiimageUrl1).HasColumnName("AIImageUrl1");
+            entity.Property(e => e.AiimageUrl2).HasColumnName("AIImageUrl2");
+            entity.Property(e => e.AiimageUrl3).HasColumnName("AIImageUrl3");
+            entity.Property(e => e.AiimgageStatus).HasColumnName("AIImgageStatus");
             entity.Property(e => e.ApplyDateTime)
                 .HasComment("申請日期")
                 .HasColumnType("datetime");
@@ -189,6 +194,7 @@ public partial class TalkingTopiaDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("CDate");
             entity.Property(e => e.CourseId).HasComment("課程Id");
+            entity.Property(e => e.NotifyCount).HasComment("已發送通知次數");
             entity.Property(e => e.StudentId).HasComment("預約學生Id");
             entity.Property(e => e.Udate)
                 .HasComment("更新時間")

@@ -12,76 +12,18 @@
         <!-- 將搜尋欄位移出collapse -->
         <ul class="navbar-nav mx-3">
             <li class="nav-item search-course">
-                <form class="d-flex" action="#" method="post" id="difysearch">
-                    <div class="input-container nav-item dropdown">
-                        @* id="keyword" name="keyword" *@
-                        <input class="form-control nav-link dropdown-toggle"
-                               id="courseMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false"
-                               type="search" placeholder="搜尋課程" aria-label="Search">
-                        <div class="dropdown-menu mega-menu p-3" aria-labelledby="courseMenu">
-                            <div class="row">
-                                <!-- 第一欄 -->
-                                <div class="col-4 first-column">
-                                    <ul class="list-unstyled">
-                                        <li><a href="#" data-target="language-learning">語言學習</a></li>
-                                        <li><a href="#" data-target="programming-language">程式設計</a></li>
-                                        <li><a href="#" data-target="academic">升學科目</a></li>
-                                    </ul>
-                                </div>
-                                <!-- 第二欄(動態顯示的內容) -->
-                                <div class="col-4 second-column">
-                                    <div class="sub-menu language-learning">
-                                        <ul class="list-unstyled">
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=英文&sortOption=default">英文</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=日文&sortOption=default">日文</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=中文&sortOption=default">中文</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=德文&sortOption=default">德文</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=法文&sortOption=default">法文</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=西班牙文&sortOption=default">西班牙文</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="sub-menu programming-language">
-                                        <ul class="list-unstyled">
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=HTML%2FCSS&sortOption=default">HTML/CSS</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=JavaScript&sortOption=default">JavaScript</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=C%23&sortOption=default">C#</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=SQL&sortOption=default">SQL</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=Python&sortOption=default">Python</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=Java&sortOption=default">Java</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="sub-menu academic">
-                                        <ul class="list-unstyled">
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=數學&sortOption=default">數學</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=物理&sortOption=default">物理</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=化學&sortOption=default">化學</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=歷史&sortOption=default">歷史</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=地理&sortOption=default">地理</a></li>
-                                            <li class="dropdown-menu-item"><a href="~/Course/CourseList?page=1&subject=生物&sortOption=default">生物</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <!-- 第三欄 (固定顯示內容) -->
-@*                                 <div class="col-4 third-column">
-                                    <div class="rating">
-                                        <span>5.0 ★</span>
-                                        <span>(1,758,545 評價)</span>
-                                    </div>
-                                    <button class="btn btn-block my-3 btn-find-tutor">找英文家教</button>
-                                    <ul class="list-unstyled">
-                                        <li><a href="#">更多資訊</a></li>
-                                        <li><a href="#">英文課程內容</a></li>
-                                        <li><a href="#">英文教師新資料</a></li>
-                                        <li><a href="#">英文學生學習故事</a></li>
-                                        <li><a href="#">英文學生評價內容</a></li>
-                                    </ul>
-                                </div> *@
-                            </div>
-                        </div>
+                <div class="dify-search" id="dify-search-app">
+                    <input v-model="productTitle" type="text" name="product-title" id="product-title" placeholder="請輸入搜尋內容..." autocomplete="off">
+                    <button class="difysearchbtn"
+                                :disabled="!difyCreateButtonStatus"
+                                v-on:click="generateProductDetailsByDify">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </button>
                     </div>
-                </form>
             </li>
         </ul>
+
+
         <div class="collapse navbar-collapse" id="navbarNav">
             <!-- 左側導覽連結 -->
             <ul class="navbar-nav">
@@ -115,11 +57,11 @@
                             <i class="fa-solid fa-cart-shopping"></i>
                         </a>
                     </li>
-                    <li class="nav-item message-item">
+@*                     <li class="nav-item message-item">
                         <a class="nav-link" href="">
                             <i class="fa-regular fa-comments"></i>
                         </a>
-                    </li>
+                    </li> *@
 
 
                     <!--會員系統子選單開始-->
@@ -150,13 +92,13 @@
                         <a class="nav-link" href="/Tutor/Index">成為教師</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/Account/Account">登入/註冊</a>
+                        <a class="nav-link" asp-controller="Account" asp-action="Account">登入/註冊</a>
                     </li>
-                    <li class="nav-item message-item">
+                    @* <li class="nav-item message-item">
                         <a class="nav-link" href="">
                             <i class="fa-regular fa-comments"></i>
                         </a>
-                    </li>
+                    </li> *@
                 }
             </ul>
         </div>

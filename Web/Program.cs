@@ -12,11 +12,21 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Web.Models.MongoDB;
 using Web.Settings;
+using Web.Helpers;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
+using Coravel;
+using Coravel.Scheduling.Schedule.Interfaces;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Web
 {
     public class Program
     {
+        [Experimental("SKEXP0020")]
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -26,9 +36,15 @@ namespace Web
                 builder.Configuration.AddUserSecrets<Program>();
             }
 
+            builder.Services.AddMemoryCache();
+            //註冊 CacheService
+            builder.Services.AddScoped<CacheService>();
+
             // Add DbContext configuration
             builder.Services.AddDbContext<Data.TalkingTopiaDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("TalkingTopiaDb")));
+
+
 
             //註冊IRepository
             builder.Services.AddScoped<IRepository, GeneralRepository>();
@@ -39,7 +55,26 @@ namespace Web
             //註冊EmailService
             builder.Services.AddScoped<IEmailService, EmailService>();
 
+            //註冊SearchService
+            builder.Services.AddScoped<ISearchService, ApplicationCore.Services.SearchService>();
+
+
+            builder.Services.AddScoped<DifySearchRecommendationService>();
+
+            builder.Services.AddScoped<Web.Services.OpenAI.OpenAIService>();
+
+
+            //註冊Coravel Scheduler
+            builder.Services.AddScheduler();
+
             builder.Services.AddHttpContextAccessor();
+
+            //註冊redis distributed cache
+            builder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = builder.Configuration["ConnectionStrings:Redis"];
+                options.InstanceName = "TalkingTopia-Cache";
+            });
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -64,6 +99,8 @@ namespace Web
             builder.Services.AddScoped<NationService>();
             builder.Services.AddScoped<CourseCategoryService>();
             builder.Services.AddScoped<CloudinaryService>();
+            builder.Services.AddScoped<RedisCacheHelper>();
+            builder.Services.AddScoped<AppointmentNotificationService>();
 
             // 要加下面這個 AddInfrastructureService      
             builder.Services.AddInfrastructureService(builder.Configuration);
@@ -71,11 +108,6 @@ namespace Web
             // ConfigureApplicationCoreService -> for 非Web專案內的DI
             // ConfigureWebService -> for Web專案內的DI
             builder.Services.AddApplicationCoreService().AddWebService();
-            // 大國的，勿刪(只在開發環境加入User Secrets)
-            //if (builder.Environment.IsDevelopment())
-            //{
-            //    builder.Configuration.AddUserSecrets<Program>();
-            //}
 
             builder.Services.AddCors(options =>
             {
@@ -108,6 +140,12 @@ namespace Web
             });
             builder.Services.AddScoped<MongoRepository>();
 
+            // Product Semantic Search Service
+            builder.Services
+                .Configure<ApplicationCore.Settings.MongoDbVecotrSearchSettings>(builder.Configuration.GetSection(nameof(ApplicationCore.Settings.MongoDbVecotrSearchSettings)));
+
+
+
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                             .AddCookie(options =>
                             {
@@ -123,6 +161,10 @@ namespace Web
             builder.Services.AddAuthorization();
             builder.Logging.ClearProviders();
             builder.Logging.AddConsole();
+
+            
+
+
 
             var app = builder.Build();
 
@@ -150,6 +192,43 @@ namespace Web
             // 先驗證再授權.
             app.UseAuthentication();
             app.UseAuthorization();
+
+            //設置Coravel排程
+            var scheduler = app.Services.GetRequiredService<IScheduler>();
+            scheduler.Schedule(async () =>
+            {
+                using var scope = app.Services.CreateScope();
+                var notificationService = scope.ServiceProvider.GetRequiredService<AppointmentNotificationService>();
+                await notificationService.SendNotificationsAsync();
+            }).EveryMinute();
+
+            app.MapControllers();
+
+
+            app.MapControllerRoute(
+            name: "Login",
+            pattern: "Login",
+            defaults: new { controller = "Account", action = "Account" });
+
+            app.MapControllerRoute(
+            name: "MemberData",
+            pattern: "MemberData",
+            defaults: new { controller = "Member", action = "MemberData" });
+
+            app.MapControllerRoute(
+            name: "MemberTransaction",
+            pattern: "MemberOrderDetails",
+            defaults: new { controller = "Member", action = "MemberTransaction" });
+
+            app.MapControllerRoute(
+            name: "TutorData",
+            pattern: "TutorData",
+            defaults: new { controller = "Tutor", action = "TutorData" });
+
+            app.MapControllerRoute(
+            name: "PublishCourse",
+            pattern: "PublishCourse",
+            defaults: new { controller = "Tutor", action = "PublishCourse" });
 
             app.MapControllerRoute(
                 name: "default",

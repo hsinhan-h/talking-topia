@@ -1,8 +1,10 @@
 ﻿using ApplicationCore.Interfaces;
 using Infrastructure.Data;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Data;
 
 namespace Infrastructure
 {
@@ -14,6 +16,8 @@ namespace Infrastructure
             services.AddDbContext<TalkingTopiaDbContext>(options => options.UseSqlServer(connectionString));
             services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
             services.AddScoped(typeof(ITransaction), typeof(EfTransaction));
+            //註冊IDbConnection for Dapper
+            services.AddScoped<IDbConnection>(sp => new SqlConnection(connectionString));
         }
     }
 }

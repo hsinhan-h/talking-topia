@@ -139,7 +139,8 @@ namespace Api.Services
             }
 
             var entity = await _bookingRepository.GetByIdAsync(request.BookingID);
-            var bookingDate = DateTime.Parse(request.BookingDate.Trim());
+            //var bookingDate = DateTime.Parse(request.BookingDate.Trim());
+            var bookingDate = DateTime.SpecifyKind(DateTime.Parse(request.BookingDate.Trim()), DateTimeKind.Local);
             var bookingTime = request.BookingTime.Trim();
             entity.BookingDate = bookingDate;
             entity.BookingTime = Int32.Parse(bookingTime.Replace(":00", ""));

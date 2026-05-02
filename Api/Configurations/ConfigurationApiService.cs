@@ -12,6 +12,9 @@ namespace Api.Configurations
             services.AddScoped<DashboardApiService>();
             services.AddScoped<CourseManagementApiService>();
             services.AddScoped<MemberManagermentApiService>();
+            services.AddScoped<CourseImageService>();
+            services.AddScoped<CloudinaryService>();
+            services.AddScoped<CourseManagementApiDapperService>();
             return services;
         }
     }

@@ -204,14 +204,18 @@ namespace Web.Controllers
             var state = Guid.NewGuid().ToString("N");
             HttpContext.Session.SetString("LineState", state);
 
-            var redirectUrl = $"https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2006372467&redirect_uri=https://localhost:7263/Account/SSOcallback&state={state}&scope=profile%20openid%20email";
+            var redirectUrl = $"https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=2006372467&redirect_uri=https://talkingtopia-edfmd7fmeudpckg6.japaneast-01.azurewebsites.net/Account/SSOcallback&state={state}&scope=profile%20openid%20email";
             return Redirect(redirectUrl);
         }
 
-        [HttpGet]
         public async Task<IActionResult> SSOcallback(string code, string state)
         {
-            var accessToken = await _lineAuthService.GetAccessTokenAsync(code);
+            // 從 GetAccessTokenAsync 獲取 LineTokenResponseDto
+            var tokenResponse = await _lineAuthService.GetAccessTokenAsync(code);
+            var accessToken = tokenResponse.AccessToken; // 提取 access_token
+            var idToken = tokenResponse.IdToken; // 提取 id_token
+
+            // 使用 accessToken 獲取 userProfile
             var userProfile = await _lineAuthService.GetUserProfileAsync(accessToken);
 
             // 檢查 LineUserId 是否有效
@@ -220,13 +224,16 @@ namespace Web.Controllers
                 throw new Exception("無法取得 LineUserId，登入失敗");
             }
 
+            // 使用 id_token 來解碼並獲取 email
+            var email = await _lineAuthService.GetEmailFromIdTokenAsync(idToken);
+
             // 使用 LineUserId 查找 Members 表中的用戶
             var existingMember = await _repository.GetMemberByLineIdAsync(userProfile.LineUserId);
 
             if (existingMember == null)
             {
                 // 處理 email 為空的情況
-                var email = string.IsNullOrEmpty(userProfile.Email) ? $"{userProfile.LineUserId}@line.com" : userProfile.Email;
+                email = string.IsNullOrEmpty(email) ? $"{userProfile.LineUserId}@line.com" : email;
 
                 // 新增 User 到 Users 表
                 var newUser = new User
@@ -249,7 +256,7 @@ namespace Web.Controllers
                     Password = GenerateRandomPassword(),
                     LastName = "", // 預設為空白
                     Birthday = null,
-                    Email = userProfile.Email ?? $"{userProfile.LineUserId}@line.com", // 使用者可能沒有 email
+                    Email = email, // 使用從 id_token 取得的 email 或生成的 email
                     Nickname = "",
                     Phone = "",
                     HeadShotImage = userProfile.PictureUrl,
@@ -257,6 +264,7 @@ namespace Web.Controllers
                     Udate = DateTime.Now,
                     IsTutor = false,
                     IsVerifiedTutor = false,
+                    EmailVerificationToken = "" // 初始化為空字符串，避免資料庫錯誤
                 };
 
                 _repository.Create(newMember);
@@ -264,8 +272,6 @@ namespace Web.Controllers
 
                 existingMember = newMember;
             }
-
-
 
             // 設置登入 Claims，確保使用 Members 表中的 MemberId
             var claims = new List<Claim>

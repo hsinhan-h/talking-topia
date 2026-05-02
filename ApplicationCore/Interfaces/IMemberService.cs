@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApplicationCore.Dtos;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,8 @@ namespace ApplicationCore.Interfaces
         public int AddWatchList(int memberId, int courseId);
         public bool DeleteWatchList(int memberId, int courseId);
         public bool GetIsTutor(int memberId);
-        public Task<int> GetTutorId(int courseId);
+        public Task<SignalRTutorDto> GetTutor(int courseId);
+        public Task<SignalRStudentDto> GetStudent(int studentId);
         public Task<string> GetMemberName(int memberId);
-        public Task<string> GetTutorName(int tutorId);
     }
 }

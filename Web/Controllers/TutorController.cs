@@ -130,7 +130,7 @@ namespace Web.Controllers
             if (resultTime.Success)
             {
 
-                TempData["Message"] = "教師資料更新成功";
+                TempData["Message"] = qVM.Message;
                 return RedirectToAction("TutorData");
             }
             else
@@ -202,7 +202,10 @@ namespace Web.Controllers
             }
         }
 
-
+        /// <summary>
+        /// 課程列表資訊
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<IActionResult> PublishCourse()
         {
@@ -215,7 +218,9 @@ namespace Web.Controllers
             var result = await _memberService.GetMemberId(memberId);
 
             var model = await _bookingService.GetPublishCourseList(memberId);
+            // 歷史課程
             ViewData["HistoryList"] = await _bookingService.GetPublishCourseHistoryList(memberId);
+            // 課程類別列表(下拉選單使用)
             ViewData["CourseCategoryList"] = await _courseCategoryService.GetCourseCategoryListAsync();
             ViewBag.IsTutor = _memberService.GetIsTutor(memberId);
 
@@ -226,6 +231,10 @@ namespace Web.Controllers
             return View();
         }
 
+        /// <summary>
+        /// 測試使用
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Test()
         {
             int MemberId = 3;
@@ -260,5 +269,7 @@ namespace Web.Controllers
             }
             return View(appointmentDetails);
         }
+
+        
     }
 }

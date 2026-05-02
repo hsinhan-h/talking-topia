@@ -5,6 +5,7 @@ global using System.ComponentModel.DataAnnotations;
 global using ApplicationCore.Enums;
 global using Web.Models;
 global using Web.Services;
+global using Web.Dtos;
 global using Web.Services.DifyWorkflow;
 global using Web.Services.DifyWorkflow.Dtos;
 global using Web.Entities;

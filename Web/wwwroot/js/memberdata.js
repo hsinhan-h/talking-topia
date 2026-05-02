@@ -43,8 +43,6 @@ function submitPasswordChange() {
         });
 }
 
-
-
 // 即時驗證輸入框
 function validateInput(input) {
     const errorSpanId = input.id + "-error";
@@ -79,8 +77,6 @@ function validateInput(input) {
     }
 }
 
-
-// 表單驗證邏輯
 // 表單驗證邏輯
 function validateInput(input) {
     const errorSpanId = input.id + "-error";
@@ -229,7 +225,7 @@ function collectCoursePreferences() {
     });
     return selectedCourses;
 }
-//編輯
+
 // 初始化編輯模式的切換
 function toggleEditMode() {
     // 取得所有需要編輯的文字輸入欄位
@@ -241,18 +237,31 @@ function toggleEditMode() {
     // 取得所有的 radio button 元素
     const radioButtons = document.querySelectorAll('#app input[type="radio"]');
 
+    //// 切換每個文字輸入欄位的 disabled 屬性
+    //inputs.forEach(input => {
+    //    // 對於帳號和電子信箱欄位，始終保持 disabled
+    //    if (input.id !== 'accountInput' && input.id !== 'emailInput') {
+    //        input.disabled = !input.disabled;
+
+    //        // 如果啟用了編輯模式，為輸入框添加即時驗證
+    //        if (!input.disabled) {
+    //            input.addEventListener('input', function () {
+    //                validateInput(input);
+    //            });
+    //        }
+    //    }
+    //});
+
     // 切換每個文字輸入欄位的 disabled 屬性
     inputs.forEach(input => {
-        // 對於帳號和電子信箱欄位，始終保持 disabled
-        if (input.id !== 'accountInput' && input.id !== 'emailInput') {
-            input.disabled = !input.disabled;
+        // 讓帳號和電子信箱欄位也可以被編輯
+        input.disabled = !input.disabled;
 
-            // 如果啟用了編輯模式，為輸入框添加即時驗證
-            if (!input.disabled) {
-                input.addEventListener('input', function () {
-                    validateInput(input);
-                });
-            }
+        // 如果啟用了編輯模式，為輸入框添加即時驗證
+        if (!input.disabled) {
+            input.addEventListener('input', function () {
+                validateInput(input);
+            });
         }
     });
 

@@ -9,7 +9,8 @@ namespace ApplicationCore.Interfaces
 {
     public interface ILineAuthService
     {
-        Task<string> GetAccessTokenAsync(string code);
+        Task<LineTokenResponseDto> GetAccessTokenAsync(string code);
         Task<LineUserProfileDto> GetUserProfileAsync(string accessToken);
+        Task<string> GetEmailFromIdTokenAsync(string idToken); // 新增這個方法
     }
 }

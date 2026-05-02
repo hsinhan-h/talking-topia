@@ -1,6 +1,7 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
+    let isFormSubmitted = false;
     const submitBtn = document.querySelector('.submitButton');
-    const memberId = document.getElementById('memberIdDisplay').innerText
+    const memberId = localStorage.getItem('memberId'); 
     document.querySelectorAll('.memberInfoItem').forEach(item => {
         if (item.value) {
             item.disabled = true;
@@ -8,28 +9,42 @@
     });
     let isEditing = false; // 用來判斷是否處於編輯狀態
     const spinner = submitBtn.querySelector('.submitspinner');
+
+   
     submitBtn.addEventListener('click', function (event) {
         // 如果按鈕是處於編輯狀態，阻止提交表單
         if (!isEditing) {
             event.preventDefault();
-            // 如果是編輯狀態，先允許編輯
+            // 允許編輯
             document.querySelectorAll('.memberInfoItem').forEach(item => {
                 item.disabled = false;
             });
             // 改變按鈕文本為 "提交"
             submitBtn.childNodes[0].textContent = "提交";  // 只更改文本部分
             // 更改狀態，讓下一次按下時可以進行提交
+            isFormSubmitted = true
             isEditing = true;
         } else {
             // 顯示 spinner
             spinner.classList.remove('d-none');
             // 第二次按下則允許表單提交
-            document.querySelector('.tutorDataForm').submit();
+            document.querySelector('.tutorDataTimeForm').submit();
+            
         }
     });
 
     const submitTimeBtn = document.querySelector('.submitTimeButton');
     submitTimeBtn.addEventListener('click', function () {
+
+        const hasChecked = Array.from(document.querySelectorAll('.form-check-input.Weekday')).some(checkbox => checkbox.checked);
+
+        if (!hasChecked) {
+            
+            toastr.info('請至少勾選一個時段！');
+            event.preventDefault(); 
+            return; 
+        }
+
         // 取得 spinner 元素
         const spinner = document.querySelector('.spinner-grow');
 
@@ -37,7 +52,9 @@
         spinner.classList.remove('d-none');
 
         // 提交表單
+        isFormSubmitted = true
         document.querySelector('.tutorDataTimeForm').submit();
+        
     });
 
     var toastElement = document.getElementById('toast');
@@ -57,27 +74,7 @@
         "saturday",
         "sunday",
     ];
-    const timeslotRow = document.getElementById("timeslot-row");
-
-    // 創建日選擇框（假設你希望這些選擇框出現在你的 HTML 中的某處）
-    weekdays.forEach((day, index) => {
-        const dayCheckbox = document.createElement("div");
-        dayCheckbox.className = "form-check";
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.className = "form-check-input Weekday";
-        input.id = `checkbox-${day}`;
-        input.value = day;
-
-        const label = document.createElement("label");
-        label.className = "form-check-label";
-        label.htmlFor = input.id;
-        label.textContent = `${day.charAt(0).toUpperCase() + day.slice(1)}`;
-
-        dayCheckbox.appendChild(input);
-        dayCheckbox.appendChild(label);
-        document.body.appendChild(dayCheckbox); // 將日選擇框附加到 body 或適當的容器中
-    });
+    const timeslotRow = document.getElementById("timeslot-row");//父層
 
     weekdays.forEach((day) => {
         // 創建隱藏的時段區塊
@@ -195,7 +192,7 @@
         });
     });
 
-
+    //渲染card用
     if (memberId !== null) {
         const apiUrl = `/api/GetTutorReserveApi/GetTutorReserveTimeJson?memberId=${memberId}`;
 
@@ -370,43 +367,8 @@
         });
 
     }
-    function deleteReservation(memberId) {
-        const apiUrlreserveTime = `/api/UpdateTutorReserveTime/UpdateTutorReserveTime?memberId=${memberId}`;
-
-        fetch(apiUrlreserveTime, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const editButton = document.querySelector('#edit-button');
-                    editButton.classList.remove('d-none'); 
-                    const popover = new bootstrap.Popover(editButton, {
-                        trigger: 'manual', 
-                        content: '請重新選擇時段', 
-                        placement: 'top' 
-                    });
-                    popover.show();
-                    setTimeout(() => {
-                        popover.hide();
-                    }, 3000);
-                } else {
-                    console.log('更新失敗，請重試！');
-                }
-            })
-            .catch(error => {
-                console.error('Error updating data:', error);
-                console.log('更新過程中發生錯誤！');
-            });
-    }
-
     // 點擊事件內調用函數
     document.getElementById("edit-button").addEventListener("click", function () {
-        const memberId = document.getElementById('memberIdDisplay').innerText; 
-        deleteReservation(memberId); 
         const enablecheckbox = document.querySelectorAll('input[type="checkbox"]');
         enablecheckbox.forEach(checkbox => { checkbox.disabled = false })
     });

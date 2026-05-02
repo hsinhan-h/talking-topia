@@ -51,5 +51,18 @@ namespace Web.Services
                 MemberAppointmentList = await orderedMemberAppointments.ToListAsync(), 
             };
         }
+
+        public async Task<string> GetMemberEmailAsync(int memberId)
+        {
+            var member = await _repository.GetMemberByIdAsync(memberId);
+            return member?.Email;
+        }
+
+        public async Task<string> GetMemberFirstNameAsync(int memberId)
+        {
+            var member = await _repository.GetMemberByIdAsync(memberId);
+            return member?.FirstName;
+        }
+
     }
 }

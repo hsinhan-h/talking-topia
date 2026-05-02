@@ -41,6 +41,7 @@ namespace Web.Controllers
         /// <summary>
         /// 交易成功導回頁
         /// </summary>
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();

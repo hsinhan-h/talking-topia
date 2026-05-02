@@ -27,7 +27,7 @@
                         <td data-label="商品">
                             <a href="#" class="d-flex align-items-center lh-backstage-shoppingcart-course-name">
                                 <img src="@item.HeadShotImage" align="middle"
-                                     class="teacher-img-img" style="width: 50px;" /><p class="flex-grow-1 m-0" id="productInfo">@item.CourseTitle</p>
+                                     class="teacher-img-img" /><p class="flex-grow-1 m-0" id="productInfo">@item.CourseTitle</p>
                             </a>
                             <form asp-controller="ShoppingCart" asp-action="Delete" method="post">
                                 @Html.AntiForgeryToken() <!-- CSRF 保護 -->
@@ -108,21 +108,6 @@
             </tbody>
         </table>
     </div>
-    @*     <div class="coupon-list">
-    <div class="coupon-title">
-    <h3>選擇優惠券</h3>
-    </div>
-    <div class="coupon">
-    <select class="form-select" aria-label="Default select example">
-    <option selected>請選擇Coupon券</option>
-    <option value="0">當前沒有適用的Coupon券</option>
-    @foreach (var item in Model.ShoppingCartList)
-    {
-    <option value="@item.CourseId">@item.Coupon 折價100塊</option>
-    }
-    </select>
-    </div>
-    </div> *@
     <div class="payment-list">
         <div class="coupon-title">
             <h3>付款方式</h3>

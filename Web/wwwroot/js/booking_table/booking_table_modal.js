@@ -80,8 +80,29 @@ export async function generateBookingTable(weekStart, courseId) {
                 cell.classList.add("d-none");
             }
 
+            const bookingTime = new Date(date);
+            bookingTime.setHours(parseInt(time.split(':')[0]), 0, 0, 0);
+            const currentTime = new Date();
+            const timeDifference = bookingTime - currentTime;  //毫秒
+
+            //如果預約時間在6小時內或在當前時間之前, 加past-time class
+            if (timeDifference < 0) {
+                cell.style.color = '#999';
+                cell.removeAttribute("title");
+                cell.removeAttribute("data-bs-custom-class");
+
+                if (cell._tooltipInstance) {
+                    cell._tooltipInstance.dispose();  
+                }
+            }
+            else if (timeDifference < 6 * 60 * 60 * 1000) {
+                cell.style.color = '#999';
+                cell.setAttribute("title", "6小時內不可預約");
+                cell.setAttribute("data-bs-custom-class", "custom-tooltip-unavailable");
+            }
+
             //如果時段還沒被預約, 加入confirmBookingModal事件
-            if (!isBooked(date, time, bookedSlots)) {
+            else if (!isBooked(date, time, bookedSlots)) {
                 cell.addEventListener("click", () => {
                     confirmBookingModalCourseTitle.textContent = courseTitle;
                     confirmBookingModalTutorHeadshot.src = tutorHeadShot;
@@ -93,6 +114,9 @@ export async function generateBookingTable(weekStart, courseId) {
                         })`;
                     confirmBookingModalTime.textContent = time;
                     confirmBookingModal.show();
+
+                    //將選定的時間戳寫入local storage
+                    localStorage.setItem("selectedBookingTimeStamp", bookingTime.getTime());
                 });
                 cell.setAttribute("title", "預約此時段");
                 cell.setAttribute("data-bs-custom-class", "custom-table-tooltip");
@@ -195,4 +219,17 @@ async function fetchBookingTableData(courseId) {
     }
 }
 
+// 排程掃描檢查local storage是否有booking的時間戳
+setInterval(() => {
+    const currentTimestamp = Date.now();
+    const selectedBookingTimeStamp = localStorage.getItem("selectedBookingTimeStamp");
+
+    //檢查booking的時間戳是否存在, 以及目前的時間是否大於預約時間 + 6小時
+    if (selectedBookingTimeStamp && currentTimestamp > (parseInt(selectedBookingTimeStamp) + 6 * 60 * 60 * 1000)) {
+        alert("目前時間已超過此預約的時段，更新頁面");
+        localStorage.removeItem("selectedBookingTimeStamp");
+
+        location.reload();
+    }
+}, 60000)  //每分鐘檢查一次
 

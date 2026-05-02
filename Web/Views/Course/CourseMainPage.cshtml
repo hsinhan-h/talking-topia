@@ -26,7 +26,7 @@
         <div class="col-md-8 col-12 " id="tutor-main-page">
             <div class="lh-tutor-title d-flex mb-3">
                 <div class="lh-tutor-pic position-relative">
-                    <img class="tutor-headshot rounded-circle  "
+                    <img class="tutor-headshot rounded-circle"
                          src="@Url.Content(Model.TutorHeadShotImage)" />
                     <img class="tutor-nation-icon rounded-circle border border-white position-absolute "
                          src="@Url.Content(Model.TutorFlagImage)" />
@@ -111,32 +111,35 @@
                 <div class="award-icon"><img src="~/image/tutor_badge_imgs/tutor_badge.webp"></div>
                 <div class="badge-content">
                     <strong>僅有 8.5% 的優質教師</strong>
-                    <br>在 AmazingTalker 受到大量學生喜愛，好評不斷的優質教師！
+                    <br>在 TalkingTopia 受到大量學生喜愛，好評不斷的優質教師！
                 </div>
             </div>
             <div class="lh-tutor-comment " >
-                <div class="course-comment-generator w-100">
+                <div class="course-comment-generator w-100" v-if="hasTakenClass===true">
                     <h3 class="my-2">對課程的感想</h3>
                     <div class="comment-rating-stars w-100 d-flex ">
                         <p class="rating-star-sign">留下你對此課程的評分:</p>
                         <p-rating class="comment-rating-little-star my-1" name="rating" v-model="rating"></p-rating>
                     </div>
                     <div class="comment-input-section my-3 d-flex form-group">
-                        <input type="text" v-model="newReviewContent" class="comment-input-box my-3 col-10" placeholder="請留下評論...." aria-label="Username" aria-describedby="basic-addon1">
-                        <button class="btn comment-submit-btn my-3 " @@click="submitRating">
+                        <input type="text" v-model="newReviewContent" class="comment-input-box my-3 col-8" placeholder="請留下評論...." aria-label="Username" aria-describedby="basic-addon1">
+                        <button class="btn comment-submit-btn my-3" @@click="reviewContentChecked">
+                            評論檢查 
+                        </button>
+                        <button class="btn comment-submit-btn my-3" @@click="submitRating" v-if="commentIsChecked">
                             <i class="bi bi-send"></i> 送出
                         </button>
                     </div>
                 </div>
                 
                 <div class="tutor-rating d-flex align-content-center">
-                    <p class="comment-count ">{{ courseReviews.length }} 筆韓文課程評價</p>
+                    <p class="comment-count ">{{ courseReviews.length }} 筆課程評價</p>
                     <div class="rating-star" >
                         <p-rating class="display-rating-star my-1" v-model="fetchedRating" readonly></p-rating>
                     </div>
                 </div>
-                <div v-for="(review, index) in courseReviews.slice(0, 2)" :key="index" class="comment-card">
-                    <p v-if="courseReviews.length === 0">目前沒有評論</p>
+                <p v-if="courseReviews.length === 0">目前沒有評論</p>
+                <div v-for="(review, index) in courseReviews.slice(0, 2)" :key="index" class="comment-card">                    
                     <div class="comment d-flex ">
                         <div class="user-icon ">
                             <svg class="w-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -156,63 +159,6 @@
                     顯示全部{{ courseReviews.length }}則評論
                     <i class="fa-solid fa-chevron-down"></i>
                 </button>
-            </div>
-            <div class="lh-learning-story mb-4 d-none">
-                <h3 class="w-100 mb-4">3篇韓文學習故事</h3>
-                <div class="learning-story-card">
-                    <div class="story-photo">
-                        <img src="https://picsum.photos/200" alt="">
-                    </div>
-                    <div class="story-status">
-                        <p>學了韓文後去韓國旅遊更順利</p>
-                        <span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-heart me-1"></i>
-                                <span>1個喜歡</span>
-                            </span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-comment-dots me-1"></i>
-                                <span>3個留言</span>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-                <div class="learning-story-card">
-                    <div class="story-photo">
-                        <img src="https://picsum.photos/200" alt="">
-                    </div>
-                    <div class="story-status">
-                        <p>韓文學習</p>
-                        <span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-heart me-1"></i>
-                                <span>2個喜歡</span>
-                            </span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-comment-dots me-1"></i>
-                                <span>1個留言</span>
-                            </span>
-                        </span>
-                    </div>
-                </div>
-                <div class="learning-story-card">
-                    <div class="story-photo">
-                        <img src="https://picsum.photos/200" alt="">
-                    </div>
-                    <div class="story-status">
-                        <p>自學韓語半年後依舊選擇家教的理由</p>
-                        <span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-heart me-1"></i>
-                                <span>5個喜歡</span>
-                            </span>
-                            <span class="me-2">
-                                <i class="fa-regular fa-comment-dots me-1"></i>
-                                <span>2個留言</span>
-                            </span>
-                        </span>
-                    </div>
-                </div>
             </div>
             <div class="lh-tutor-evaluation d-flex ">
                 <h3 class="w-100">教師表現數據</h3>
@@ -391,13 +337,7 @@
                         <li>手機、電腦皆可使用 ZOOM 上課（手機請先下載 ZOOM 應用程式）</li>
                     </ul>
                 </div>
-                <div class="more-trouble-content">
-                    退課須知
-                    <ul>
-                        <li>當課程發生問題可選擇『回報問題』，可由教師選擇重新預約或是退AT幣</li>
-                        <li>如教師超過12小時未給予回覆，系統將自動退AT幣給您</li>
-                    </ul>
-                </div>
+                
             </div>
             <partial name="_BookingTablePartial" />
             <div class="modal fade" id="confirmBookingModal" tabindex="-1"
@@ -445,16 +385,16 @@
         <div class="col-md-4 col-12 " id="tuition-sidebar">
             <div class="side-bar-header">一對一課程</div>
             <div class="side-bar-body">
-                <div class="course-info-card try-out-course d-flex mb-3 ">
+                <a asp-controller="Chat" asp-action="Index" asp-route-id="@Model.CourseId" asp-route-type="tutor" class="course-info-card try-out-course d-flex mb-3" style="text-decoration:none;">
                     <div class="course-charging d-flex flex-column">
-                        <div class="charging-fee">體驗價格換成其他的</div>
+                        <div class="charging-fee">與教師展開對話</div>
                         <div class="course-number-time"></div>
                     </div>
                     <div class="course-discount d-flex">
                         <div class="course-discount-logo d-none">5% Off</div>
                         <i class="fa-solid fa-angle-right"></i>
                     </div>
-                </div>
+                </a>
                 <div class="course-type-switch-tab d-flex">
                     <div class="course-info-tab px-4 py-2 mb-2 course-info-tab-color" id="min-25">25分鐘</div>
                     <div class="course-info-tab px-4 py-2 mb-2" id="min-50">50分鐘</div>
@@ -541,7 +481,7 @@
                 <div class="modal-body course-comment-modal-body d-flex">
                     <div class="comment-modal-selection col-md-6 col-12">
                         <div class="comment-rating-section mb-4">
-                            <h3>韓文評價</h3>
+                            <h3>課程評價</h3>
                             <div class="comment-rating-group">
                                 <div class="form-check" v-for="rating in [5, 4, 3, 2, 1]" :key="rating">
                                     <input class="form-check-input comment-rating-selection" type="checkbox"
@@ -587,7 +527,7 @@
 
 
 </div>
-<div class="lh-rwd-course-info-tab col-12">
+@* <div class="lh-rwd-course-info-tab col-12">
     <div class="try-out-class-info">
         <div class="tab-charging-fee">This will be replace</div>
         <div class="tab-course-number-time">25分鐘體驗課</div>
@@ -597,7 +537,7 @@
         <button class="try-out-tutor-contact">聯繫老師</button>
 
     </div>
-</div>
+</div> *@
 
 
 

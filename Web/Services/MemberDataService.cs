@@ -281,8 +281,8 @@ namespace Web.Services
                                      NationFlagImg = nation.FlagImage,
                                      CourseTitle = course.Title,
                                      CourseSubTitle = course.SubTitle,
-                                     TwentyFiveMinPrice = (int)course.TwentyFiveMinUnitPrice,
-                                     FiftyminPrice = (int)course.FiftyMinUnitPrice,
+                                     TwentyFiveMinPrice = course.TwentyFiveMinUnitPrice.ToString("N0"),
+                                     FiftyminPrice = course.FiftyMinUnitPrice.ToString("N0"),
                                      Description = course.Description,
                                  }).ToList();
 

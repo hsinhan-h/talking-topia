@@ -49,7 +49,7 @@ namespace Web.Controllers.Api
         }
 
         /// <summary>
-        /// 課程儲存
+        /// 課程新增
         /// </summary>
         /// <param name="Category"></param>
         /// <returns></returns>

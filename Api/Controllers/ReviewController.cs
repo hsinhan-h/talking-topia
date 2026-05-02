@@ -51,7 +51,7 @@ namespace Api.Controllers
         /// 刪除多筆評論
         /// </summary>
         /// <returns></returns>
-        [HttpDelete]
+        [HttpPost]
         public async Task<IActionResult> DeleteReviews(List<int> reviewIds)
         {
             if (reviewIds == null || !reviewIds.Any())

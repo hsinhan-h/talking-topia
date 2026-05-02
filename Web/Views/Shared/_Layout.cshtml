@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Noto+Sans+TC:wght@100..900&display=swap"
-          rel="stylesheet">
+          rel="stylesheet" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
     <link rel="stylesheet" href="~/css/normalize.css" asp-append-version="true" />
@@ -36,34 +36,27 @@
 
     <main role="main" class="pb-3">
         @RenderBody()
+        <partial name="_DifyAIPartial" />
     </main>
     <footer class="lh-layout-footer mt-5">
         <div class="lh-layout-footer-container">
             <div class="lh-layout-footer-linkGroup col-12 col-md-12">
                 <div class="lh-layout-footer-link col-12 col-md-3">
-                    <h5>工作機會</h5>
+                    <h5>熱門頁面</h5>
                     <ul>
-                        <li><a href="#">加入TalkingTopia</a></li>
-                        <li><a href="#">找學生</a></li>
-                        <li><a asp-controller="Tutor" asp-action="Index">成為教師</a></li>
-                        <li><a href="#">家教費用資訊</a></li>
-                    </ul>
-                </div>
-                <div class="lh-layout-footer-link col-12 col-md-3">
-                    <h5>TalkingTopia</h5>
-                    <ul>
-                        <li><a href="#">關於我們</a></li>
-                        <li><a href="#">部落格</a></li>
-                        <li><a href="#">Q&A</a></li>
+                        <li><a href="#">語言學習</a></li>
+                        <li><a href="#">程式設計</a></li>
+                        <li><a href="#">升學科目</a></li>
                     </ul>
                 </div>
                 <div class="lh-layout-footer-link col-12 col-md-3">
                     <h5>工作機會</h5>
                     <ul>
-                        <li><a href="#">加入TalkingTopia</a></li>
+                        <li><a href="#">加入 TalkingTopia</a></li>
                         <li><a href="#">找學生</a></li>
                         <li><a href="#">成為教師</a></li>
                         <li><a href="#">家教費用資訊</a></li>
+                        <li><a href="#">聯盟行銷計畫</a></li>
                     </ul>
                 </div>
                 <div class="lh-layout-footer-link col-12 col-md-3">
@@ -71,15 +64,25 @@
                     <ul>
                         <li><a href="#">關於我們</a></li>
                         <li><a href="#">部落格</a></li>
-                        <li><a href="#">Q&A</a></li>
+                        <li><a href="#">外部學習資源</a></li>
                     </ul>
                 </div>
+                <!-- 新增 LINE QR Code 區塊 -->
+                <div class="lh-layout-footer-link col-12 col-md-3 lh-layout-footer-line">
+                    <h5>聯絡我們</h5>
+                    <p>TalkingTopia 官方LINE 帳號</p>
+                    <img src="~/image/logo_imgs/328eileg.png" alt="LINE QR Code" class="line-qrcode" />
+                    <p class="line-account">@@328eileg</p>
+
+                </div>
             </div>
-            <div class="lh-layout-footer-bottom col-12 col-md-12">
+            <div class="lh-layout-footer-bottom">
                 <p>© 2024 TalkingTopia Limited.</p>
+                <p><a href="#">網站地圖</a>・<a href="#">服務條款</a>・<a href="#">隱私聲明</a></p>
             </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/slick-1.8.1/slick/slick.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>

@@ -6,16 +6,22 @@ using Web.Entities;
 using Web.Dtos;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using Web.Helpers;
+using MongoDB.Driver.Linq;
 
 namespace Web.Services
 {
     public class CourseService
     {
         private readonly IRepository _repository;
+        private readonly RedisCacheHelper _cacheHelper;
 
-        public CourseService(IRepository repository)
+        public CourseService(IRepository repository, RedisCacheHelper cacheHelper)
         {
             _repository = repository;
+            _cacheHelper = cacheHelper;
         }
 
         public async Task<CourseInfoListViewModel> GetCourseCardsListAsync(
@@ -29,34 +35,48 @@ namespace Web.Services
             string selectedBudget = null,
             string selectedSortOption = null)
         {
-            //課程主資訊查詢&套用篩選
+            //課程主資訊查詢 & 套用篩選 (主資訊: 跟篩選相關的資訊)
             IQueryable<CourseInfoViewModel> courseMainInfoQuery = GetCourseMainInfoQuery();
             courseMainInfoQuery = await ApplyCourseMainInfoQueryFilters(courseMainInfoQuery, selectedSubject, selectedNation, selectedWeekdays, selectedTimeslots, selectedBudget, selectedSortOption);
             
-            //取得課程總數
+            //取得篩選後的課程總數
             int totalCourseQty = await courseMainInfoQuery.CountAsync();
 
+            //分頁
+            //1. 取當前頁數的課程資訊
             List<CourseInfoViewModel> courseMainInfo = await courseMainInfoQuery
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
+            //2. 過濾當前頁面的CourseId及MemberId
             List<int> courseIds = courseMainInfo.Select(c => c.CourseId).ToList();
             List<int> memberIds = courseMainInfo.Select(c => c.MemberId).ToList();
 
+            //3-1. 用已過濾後的Id做額外資訊查詢 (關注課程)
+            var followingCoursesInfo = await GetFollowingStatusAsync(userId, courseIds);
+            
+            string followingStatusKey = string.Join("_", followingCoursesInfo.Where(f => f.FollowingStatus == true).Select(f => f.CourseId).ToList());
+            
+            //基於query string產生cache key
+            string cacheKey = $"CourseList_{page}_{pageSize}_{userId}_{selectedSubject}_{selectedNation}_{selectedWeekdays}_{selectedTimeslots}_{selectedBudget}_{selectedSortOption}_{followingStatusKey}";
+            //若cache有對應cache key的資料, 直接返回cached data
+            var cachedData = await _cacheHelper.GetFromCacheAsync<CourseInfoListViewModel>(cacheKey);
+            if (cachedData != null)
+                return cachedData;
+
+            //3-2. 用已過濾後的Id做額外資訊查詢 (課程圖片/教師已被預約時段/教師教課時段/關注課程)
             var courseImagesInfo = await GetCourseImagesAsync(courseIds);
-            //var courseRatingsAndReviewsInfo = await GetCourseRatingsAndReviewsAsync(courseIds);
             var bookedTimeSlotsInfo = await GetBookedTimeSlotsAsync(courseIds);
             var availableTimeSlotsInfo = await GetAvailableTimeSlotsAsync(memberIds);
-            var followingCoursesInfo = await GetFollowingStatusAsync(userId, courseIds);
+            
 
-            // 合併查詢
+
+            //4. 合併查詢 (只join分頁過的資訊)
             var completeCoursesInfo = (
                 from courseMain in courseMainInfo
                 join imgInfo in courseImagesInfo on courseMain.CourseId equals imgInfo.CourseId into imgInfoGroup
                 from imgInfo in imgInfoGroup.DefaultIfEmpty()
-                //join revInfo in courseRatingsAndReviewsInfo on courseMain.CourseId equals revInfo.CourseId into revInfoGroup
-                //from revInfo in revInfoGroup.DefaultIfEmpty()
                 join bookInfo in bookedTimeSlotsInfo on courseMain.CourseId equals bookInfo.CourseId into bookInfoGroup
                 from bookInfo in bookInfoGroup.DefaultIfEmpty()
                 join tTimeInfo in availableTimeSlotsInfo on courseMain.MemberId equals tTimeInfo.MemberId into tTimeInfoGroup
@@ -86,11 +106,16 @@ namespace Web.Services
                     FollowingStatus = followingInfo.FollowingStatus
                 }).ToList();
 
-            return new CourseInfoListViewModel
+            var courseListQueryResult = new CourseInfoListViewModel
             {
                 CourseInfoList = completeCoursesInfo,
                 TotalCourseQty = totalCourseQty
             };
+
+            //將查詢結果存進distributed cache (設定SlidingExpiration為5min, AbsoluteExpirationRelativeToNow為20分)
+            await _cacheHelper.SetCacheAsync(cacheKey, courseListQueryResult, TimeSpan.FromMinutes(5), TimeSpan.FromMinutes(20));
+
+            return courseListQueryResult;
         }
 
         //處理篩選
@@ -131,19 +156,19 @@ namespace Web.Services
                     {
                         case "6-12":
                             return availableTimeSlotsInfo
-                                .Where(ts => ts.AvailableTimeSlots.Any(slot => string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday) && slot.StartHour >= 6 && slot.StartHour < 12))
+                                .Where(ts => ts.AvailableTimeSlots.Any(slot => (string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday)) && slot.StartHour >= 6 && slot.StartHour < 12))
                                 .Select(ts => ts.MemberId);
                         case "12-18":
                             return availableTimeSlotsInfo
-                                .Where(ts => ts.AvailableTimeSlots.Any(slot => string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday) && slot.StartHour >= 12 && slot.StartHour < 18))
+                                .Where(ts => ts.AvailableTimeSlots.Any(slot => (string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday)) && slot.StartHour >= 12 && slot.StartHour < 18))
                                 .Select(ts => ts.MemberId);
                         case "18-24":
                             return availableTimeSlotsInfo
-                                .Where(ts => ts.AvailableTimeSlots.Any(slot => string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday) && slot.StartHour >= 18 && slot.StartHour < 24))
+                                .Where(ts => ts.AvailableTimeSlots.Any(slot => (string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday)) && slot.StartHour >= 18 && slot.StartHour < 24))
                                 .Select(ts => ts.MemberId);
                         case "0-6":
                             return availableTimeSlotsInfo
-                                .Where(ts => ts.AvailableTimeSlots.Any(slot => string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday) && slot.StartHour >= 0 && slot.StartHour < 6))
+                                .Where(ts => ts.AvailableTimeSlots.Any(slot => (string.IsNullOrEmpty(weekday) || slot.Weekday == int.Parse(weekday)) && slot.StartHour >= 0 && slot.StartHour < 6))
                                 .Select(ts => ts.MemberId);
                         default:
                             return Enumerable.Empty<int>();
@@ -235,7 +260,7 @@ namespace Web.Services
             return courseMainInfoQuery;
         }
 
-        //主查詢
+        //課程主資訊查詢
         private IQueryable<CourseInfoViewModel> GetCourseMainInfoQuery()
         {
             return (
@@ -289,22 +314,6 @@ namespace Web.Services
                 }).ToListAsync();
         }
 
-        // 評價及評論數查詢 (by courseIds)
-        //private async Task<List<CourseInfoViewModel>> GetCourseRatingsAndReviewsAsync(List<int> courseIds)
-        //{
-        //    return await (
-        //        from review in _repository.GetAll<Entities.Review>().AsNoTracking()
-        //        where courseIds.Contains(review.CourseId)
-        //        group review by review.CourseId into gpReview
-        //        select new CourseInfoViewModel
-        //        {
-        //            CourseId = gpReview.Key,
-        //            CourseRatings = gpReview.Any() ?
-        //                            Math.Round(gpReview.Average(cr => cr.Rating), 2) : 0,
-        //            CourseReviews = gpReview.Count()
-        //        }).ToListAsync();
-        //}
-
         //已被預約時間查詢 (by courseIds)
         private async Task<List<CourseInfoViewModel>> GetBookedTimeSlotsAsync(List<int> courseIds)
         {
@@ -343,7 +352,7 @@ namespace Web.Services
 
         //關注課程查詢 (by courseIds)
         public async Task<List<CourseInfoViewModel>> GetFollowingStatusAsync(int userId, List<int> courseIds)
-        {
+        {      
             var watchedCourses = await _repository
                 .GetAll<Entities.WatchList>().AsNoTracking()
                 .Where(w => w.FollowerId == userId && courseIds.Contains(w.CourseId ?? -1))
@@ -354,7 +363,6 @@ namespace Web.Services
                 FollowingStatus = watchedCourses.Contains(courseId)
             }).ToList();
         }
-
 
         public async Task<CourseInfoViewModel> GetBookingTableAsync(int courseId)
         {
@@ -564,7 +572,7 @@ namespace Web.Services
                 CourseCount = x.CourseCount,
                 CourseDurance = time,
                 Discount = (int)x.Discount,
-                DiscountPrice = x.Discount == 0 ? price.ToString() : (price * (1 - (x.Discount / 100))).ToString("0"),
+                DiscountPrice = x.Discount == 0 ? price.ToString("N0") : (price * (1 - (x.Discount / 100))).ToString("N0"),
             }).ToList();
         }
 
@@ -620,8 +628,8 @@ namespace Web.Services
                                     NationFlagImg = nation.FlagImage,
                                     CourseTitle = course.Title,
                                     CourseSubTitle = course.SubTitle,
-                                    TwentyFiveMinPrice = (int)course.TwentyFiveMinUnitPrice,
-                                    FiftyminPrice = (int)course.FiftyMinUnitPrice,
+                                    TwentyFiveMinPrice = course.TwentyFiveMinUnitPrice.ToString("N0"),
+                                    FiftyminPrice = course.FiftyMinUnitPrice.ToString("N0"),
                                     Description = course.Description,
                                 }).ToList();
 
@@ -664,17 +672,6 @@ namespace Web.Services
                     ReviewContent = comment.CommentText
                 }).ToListAsync();
 
-            if (reviews.Count == 0)
-            {
-                reviews = new List<CourseReview>
-                {
-                   new CourseReview
-                   {
-                        ReviewContent="目前沒有評論"
-                   }
-                };
-            };
-
             return (new CourseReviewListDto
             {
                  CourseReviewList = reviews
@@ -688,13 +685,24 @@ namespace Web.Services
         public ReviewButtonDto GetReviewInfo(int memberId, int courseId) 
         {
             var hasCommented = _repository.GetAll<Entities.Review>().Any(r => r.StudentId == memberId && r.CourseId == courseId);
-            var hasTakenClass = _repository.GetAll<Entities.Booking>().Any(b=>b.StudentId == memberId && b.CourseId == courseId);
+            var hasTakenClass = _repository.GetAll<Entities.Booking>()
+                                .AsEnumerable() // 轉換為記憶體中的集合
+                                .Any(b => b.StudentId == memberId &&
+                                          b.CourseId == courseId &&
+                                          DateTime.Now >= b.BookingDate.Add(ConvertToTimeSpan(b.BookingTime)));
             var reviewButtonDto = new ReviewButtonDto
             {
                 HasCommented = hasCommented,
                 HasTakenClass = hasTakenClass,
             };
             return (reviewButtonDto);
+        }
+
+        private TimeSpan ConvertToTimeSpan(int bookingTime)
+        {
+            int hours = bookingTime / 100;  // 取得小時部分
+            int minutes = bookingTime % 100; // 取得分鐘部分
+            return new TimeSpan(hours, minutes, 0); // 建立 TimeSpan 物件
         }
 
         public void CreateReviews(int studentId, int courseId, byte NewReviewRating, string NewReviewContent)
@@ -719,7 +727,11 @@ namespace Web.Services
 
         }
 
-
+        public async Task<string> GetCourseNameAsync(int courseId)
+        {
+            var course = await _repository.GetCourseByIdAsync(courseId);
+            return course?.Title;
+        }
 
 
 

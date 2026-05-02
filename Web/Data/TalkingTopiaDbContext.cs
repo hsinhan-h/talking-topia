@@ -12,7 +12,6 @@ public partial class TalkingTopiaDbContext : DbContext
     {
         _configuration = configuration;
     }
-
     public virtual DbSet<Entities.ApplyCourse> ApplyCourses { get; set; }
 
     public virtual DbSet<Entities.ApplyCourseCategory> ApplyCourseCategories { get; set; }
@@ -77,7 +76,6 @@ public partial class TalkingTopiaDbContext : DbContext
 
         modelBuilder.Entity<Entities.ApplyCourse>(entity =>
         {
-            entity.Property(e => e.ApplyCourseId).ValueGeneratedOnAdd();
             entity.Property(e => e.Cdate)
                 .HasColumnType("datetime")
                 .HasColumnName("CDate");
@@ -150,6 +148,10 @@ public partial class TalkingTopiaDbContext : DbContext
             entity.Property(e => e.ApplyId)
                 .HasComment("申請Id")
                 .HasColumnName("ApplyID");
+            entity.Property(e => e.AiimageUrl1).HasColumnName("AIImageUrl1");
+            entity.Property(e => e.AiimageUrl2).HasColumnName("AIImageUrl2");
+            entity.Property(e => e.AiimageUrl3).HasColumnName("AIImageUrl3");
+            entity.Property(e => e.AiimgageStatus).HasColumnName("AIImgageStatus");
             entity.Property(e => e.ApplyDateTime)
                 .HasComment("申請日期")
                 .HasColumnType("datetime");
@@ -187,6 +189,7 @@ public partial class TalkingTopiaDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("CDate");
             entity.Property(e => e.CourseId).HasComment("課程Id");
+            entity.Property(e => e.NotifyCount).HasComment("已發送通知次數");
             entity.Property(e => e.StudentId).HasComment("預約學生Id");
             entity.Property(e => e.Udate)
                 .HasComment("更新時間")
@@ -196,12 +199,12 @@ public partial class TalkingTopiaDbContext : DbContext
             entity.HasOne(d => d.Course).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.CourseId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Bookings__Course__5441852A");
+                .HasConstraintName("FK_Bookings_Courses");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Bookings)
                 .HasForeignKey(d => d.StudentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Bookings__Member__534D60F1");
+                .HasConstraintName("FK_Bookings_Members");
         });
 
         modelBuilder.Entity<Entities.Coupon>(entity =>
@@ -438,6 +441,13 @@ public partial class TalkingTopiaDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(255)
                 .HasComment("電子郵件信箱");
+            entity.Property(e => e.EmailVerificationToken)
+                .IsRequired()
+                .HasMaxLength(255)
+                .HasDefaultValue("");
+            entity.Property(e => e.EmailVerificationTokenExpiration)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
             entity.Property(e => e.FirstName)
                 .IsRequired()
                 .HasMaxLength(50)
@@ -450,6 +460,7 @@ public partial class TalkingTopiaDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50)
                 .HasComment("姓氏");
+            entity.Property(e => e.LineUserId).HasMaxLength(50);
             entity.Property(e => e.NationId).HasComment("國籍Id");
             entity.Property(e => e.NativeLanguage)
                 .HasMaxLength(255)
@@ -468,6 +479,7 @@ public partial class TalkingTopiaDbContext : DbContext
                 .IsUnicode(false)
                 .IsFixedLength()
                 .HasComment("電話");
+            entity.Property(e => e.ResetPasswordToken).HasMaxLength(256);
             entity.Property(e => e.SpokenLanguage)
                 .HasMaxLength(255)
                 .HasComment("會的語言");
@@ -794,6 +806,11 @@ public partial class TalkingTopiaDbContext : DbContext
                 .HasConstraintName("FK__TutorTime__Membe__5535A963");
         });
 
+        modelBuilder.Entity<Entities.User>(entity =>
+        {
+            entity.Property(e => e.LineId).HasMaxLength(255);
+        });
+
         modelBuilder.Entity<Entities.UserRole>(entity =>
         {
             entity.HasIndex(e => e.RoleId, "IX_UserRoles_RoleId");
@@ -809,9 +826,7 @@ public partial class TalkingTopiaDbContext : DbContext
         {
             entity.HasIndex(e => e.CourseId, "IX_WatchLists_CourseId");
 
-            entity.Property(e => e.WatchListId)
-                .ValueGeneratedOnAdd()
-                .HasComment("關注Id");
+            entity.Property(e => e.WatchListId).HasComment("關注Id");
             entity.Property(e => e.CourseId).HasComment("關注的課程");
             entity.Property(e => e.FollowerId).HasComment("送出關注的人");
 
@@ -819,10 +834,9 @@ public partial class TalkingTopiaDbContext : DbContext
                 .HasForeignKey(d => d.CourseId)
                 .HasConstraintName("FK_WatchLists_Courses");
 
-            entity.HasOne(d => d.WatchListNavigation).WithOne(p => p.WatchList)
-                .HasForeignKey<Entities.WatchList>(d => d.WatchListId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_WatchLists_WatchLists");
+            entity.HasOne(d => d.Follower).WithMany(p => p.WatchLists)
+                .HasForeignKey(d => d.FollowerId)
+                .HasConstraintName("FK_WatchLists_Members");
         });
 
         modelBuilder.Entity<Entities.WorkExperience>(entity =>

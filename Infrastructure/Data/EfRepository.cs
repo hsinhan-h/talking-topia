@@ -1,4 +1,5 @@
-﻿using ApplicationCore.Interfaces;
+﻿using ApplicationCore.Entities;
+using ApplicationCore.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
@@ -160,5 +161,14 @@ namespace Infrastructure.Data
             await _dbContext.SaveChangesAsync();
             return entities;
         }
+
+        public IQueryable<Course> GetProductsByPageAsQueryable(int skipIndex, int count)
+        {
+            return _dbContext.Courses
+                .OrderBy(p => p.CourseId)
+                .Skip(skipIndex - 1)
+                .Take(count);
+        }
+
     }
 }

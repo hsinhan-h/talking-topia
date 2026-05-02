@@ -45,6 +45,10 @@
         "dist/browser/signalr.js",
         "dist/browser/signalr.min.js"
       ]
+    },
+    {
+      "library": "lazysizes@5.3.2",
+      "destination": "wwwroot/lib/lazysizes/"
     }
   ]
 }

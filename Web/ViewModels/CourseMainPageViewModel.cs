@@ -123,8 +123,8 @@ namespace Web.ViewModels
         public string NationFlagImg { get; set; }
         public string CourseTitle { get; set; }
         public string CourseSubTitle { get; set; }
-        public int TwentyFiveMinPrice { get; set; }
-        public int FiftyminPrice { get; set; }
+        public string TwentyFiveMinPrice { get; set; }
+        public string FiftyminPrice { get; set; }
         public double Rating { get; set; }
         public string Description { get; set; }
     }

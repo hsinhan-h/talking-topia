@@ -94,10 +94,10 @@ const { createApp } = Vue;
 const appresume = createApp({
     data() {
         return {
-            selectedCategory: '', 
-            selectedSubcategory: '', 
-            commonData: {}, 
-            licenses: [ 
+            selectedCategory: '',
+            selectedSubcategory: '',
+            commonData: {},
+            licenses: [
                 {
                     ProfessionalLicenseId: null,
                     ProfessionalLicenseName: '',
@@ -116,23 +116,25 @@ const appresume = createApp({
                     workExperienceId: null,
                     workEditMode: false,
                     uploadWorkStatus: null,
-                    isWorkUploading:false,
+                    isWorkUploading: false,
                 }
             ],
             formSubmitted: false,
-            selectedFile: null,   
+            selectedFile: null,
             headShotImage: headImage,
             headImageUpdated: false,
-            confirmheadShotImg: true, 
+            confirmheadShotImg: true,
             editMode: false,
             HeadImgisUploading: false,
-            showValidation: false ,
-            formIsValid:true
+            showValidation: false,
+            formIsValid: true,
+            checkAIbool: false,
+            imagesData:[],
         };
     },
     computed: {
         categories() {
-            return this.commonData['raw_data'] || []; 
+            return this.commonData['raw_data'] || [];
         },
         subcategories() {
             if (this.selectedCategory) {
@@ -165,7 +167,8 @@ const appresume = createApp({
     },
 
     mounted() {
-        this.fetchBackendData(); 
+        this.fetchBackendData();
+        this.fetchAIimgs();
         window.addEventListener('beforeunload', this.beforeUnloadHandler);
     },
     beforeDestroy() {
@@ -173,9 +176,105 @@ const appresume = createApp({
         window.removeEventListener('beforeunload', this.beforeUnloadHandler);
     },
     methods: {
+        async fetchAIimgs() {
+            const memberId = localStorage.getItem('memberId');
+
+            try {
+                const response = await fetch(`/api/UpdateResume/GetApplyListImages?memberId=${memberId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`錯誤: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                console.log('API 回傳資料data:', data);
+                if (data.success) {
+                    this.imagesData = data.data;
+                    console.log('API 回傳資料data.data:', data.data);
+                } else {
+                    this.errorMessage = data.message;
+                }
+            } catch (error) {
+                this.errorMessage = `無法取得圖片資料: ${error.message}`;
+            }
+        },
+        async UpdateFinaleAIImageUrl(imageUrl) {
+            try {
+                const memberId = localStorage.getItem('memberId');
+
+                if (!memberId) {
+                    throw new Error('會員 ID 未找到，請重新登入。');
+                }
+
+                const response = await fetch('/api/UpdateResume/UpdateAIimg', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        memberId: parseInt(memberId),
+                        url: imageUrl
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`錯誤: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                console.log('更新結果:', result);
+
+                if (result.success) {
+                    toastr.success('圖片更新成功！');
+                    this.loadHeadShotImage();
+
+                } else {
+                    toastr.error('圖片更新失敗！');
+                }
+            } catch (error) {
+                toastr.error('圖片更新失敗！');
+                this.errorMessage = `無法更新圖片資料: ${error.message}`;
+            }
+        },
+        changeToAICheck() {
+            const memberId = localStorage.getItem('memberId');
+            if (!memberId) {
+                console.log("無法獲取會員 ID");
+                return;
+            }
+            fetch(`/api/UpdateResume/CheckAIStatus/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    memberId: memberId,
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        toastr.success('已收到您的需求');
+                        console.log('AI狀態更新成功');
+                    } else {
+                        toastr.info('您必須成為教師後才有此服務');
+                        console.log('AI狀態更新失敗: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    toastr.error('系統維修中');
+                    console.error('更新 AI 狀態時出錯:', error);
+                });
+        },
         convertData(data) {
             let result = {};
-            result["raw_data"] = data; 
+            result["raw_data"] = data;
             data.forEach(category => {
                 result["category_" + category.id] = category;
                 category.subcategories.forEach(subcategory => {
@@ -231,7 +330,7 @@ const appresume = createApp({
             const chineseNumbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 
             if (num === 10) {
-                return '十'; 
+                return '十';
             }
 
             let result = '';
@@ -239,13 +338,13 @@ const appresume = createApp({
             const ones = num % 10;
 
             if (tens === 1) {
-                result += '十'; 
+                result += '十';
             } else if (tens > 1) {
-                result += chineseNumbers[tens] + '十'; 
+                result += chineseNumbers[tens] + '十';
             }
 
             if (ones !== 0) {
-                result += chineseNumbers[ones]; 
+                result += chineseNumbers[ones];
             }
 
             return result;
@@ -257,7 +356,7 @@ const appresume = createApp({
                 ProfessionalLicenseName: '',
                 ProfessionalLicenseUrl: null,
                 ProfessionalLicenseId: null,
-                valid: false,  
+                valid: false,
             };
             this.licenses.push(newLicense);
 
@@ -267,7 +366,7 @@ const appresume = createApp({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    memberId: localStorage.getItem('memberId') 
+                    memberId: localStorage.getItem('memberId')
                 })
             })
                 .then(response => response.json())
@@ -289,16 +388,16 @@ const appresume = createApp({
             if (!updatedLicense.ProfessionalLicenseName) {
                 console.log('請填寫證照名稱');
                 this.licenses[index].uploadStatus = false;
-                return; 
+                return;
             }
 
             if (!updatedLicense.ProfessionalLicenseUrl) {
                 console.log('請上傳證照文件');
                 this.licenses[index].uploadStatus = false;
-                return; 
+                return;
             }
 
-            this.licenses[index].licenseEditMode = false; 
+            this.licenses[index].licenseEditMode = false;
             this.licenses[index].isUploading = true;
 
             const formData = new FormData();
@@ -324,7 +423,7 @@ const appresume = createApp({
                         this.licenses[index].uploadStatus = true;
 
                         if (!this.licenses[index].ProfessionalLicenseId) {
-                            this.licenses[index].ProfessionalLicenseId = data.professionalLicenseId; 
+                            this.licenses[index].ProfessionalLicenseId = data.professionalLicenseId;
                         }
                     } else {
                         console.log('Failed to update license:', data.message);
@@ -341,7 +440,7 @@ const appresume = createApp({
             const licenseToRemove = this.licenses[index];
 
             if (licenseToRemove.ProfessionalLicenseId) {
-                const memberId = localStorage.getItem('memberId'); 
+                const memberId = localStorage.getItem('memberId');
                 fetch('/api/UpdateResume/DeleteLicense', {
                     method: 'POST',
                     headers: {
@@ -349,7 +448,7 @@ const appresume = createApp({
                     },
                     body: JSON.stringify({
                         memberId: memberId,
-                        ProfessionalLicenseId: [licenseToRemove.ProfessionalLicenseId] 
+                        ProfessionalLicenseId: [licenseToRemove.ProfessionalLicenseId]
                     })
                 })
                     .then(response => response.json())
@@ -390,7 +489,7 @@ const appresume = createApp({
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    memberId: localStorage.getItem('memberId') 
+                    memberId: localStorage.getItem('memberId')
                 })
             })
                 .then(response => response.json())
@@ -425,7 +524,7 @@ const appresume = createApp({
                     },
                     body: JSON.stringify({
                         memberId: memberId,
-                        WorkBackground: [  
+                        WorkBackground: [
                             {
                                 WorkExperienceId: workexpToRemove.workExperienceId
                             }
@@ -465,7 +564,7 @@ const appresume = createApp({
             const formData = new FormData();
             formData.append('memberId', memberId);
 
-            formData.append(`WorkBackground[0].WorkExperienceId`, updatedworkexp.workExperienceId || 0); 
+            formData.append(`WorkBackground[0].WorkExperienceId`, updatedworkexp.workExperienceId || 0);
             formData.append(`WorkBackground[0].WorkName`, updatedworkexp.workName || '');
             formData.append(`WorkBackground[0].WorkStartDate`, updatedworkexp.workStartDate || '');
             formData.append(`WorkBackground[0].WorkEndDate`, updatedworkexp.workEndDate || '');
@@ -500,7 +599,7 @@ const appresume = createApp({
                     console.error('Error updating work experience:', error);
                 });
         },
-  
+
         validateForm() {
             this.formIsValid = true;
 
@@ -512,7 +611,7 @@ const appresume = createApp({
 
             // 檢查每個證照是否填寫完整
             this.licenses.forEach((license, index) => {
-                if (!license.ProfessionalLicenseName ) {
+                if (!license.ProfessionalLicenseName) {
                     console.log(`證照 ${index + 1} 欄位未填寫完畢`);
                     this.formIsValid = false;
                 }
@@ -522,8 +621,7 @@ const appresume = createApp({
                     !work.workName ||
                     !work.workStartDate ||
                     !work.workEndDate
-                )
-                {
+                ) {
                     console.log(`工作經歷 ${index + 1} 欄位未填寫完畢`);
                     this.formIsValid = false;
                 }
@@ -532,7 +630,7 @@ const appresume = createApp({
             if (!this.formIsValid) {
                 const validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
                 validationModal.show();
-                return; 
+                return;
             }
             window.removeEventListener('beforeunload', this.beforeUnloadHandler);
 
@@ -561,8 +659,7 @@ const appresume = createApp({
                     !work.workName ||
                     !work.workStartDate ||
                     !work.workEndDate
-                )
-                {
+                ) {
                     this.removeWorkExperience(index);
                 }
             });
@@ -572,16 +669,16 @@ const appresume = createApp({
             const HeadImage = this.selectedFile;
 
             if (!HeadImage) {
-                this.confirmheadShotImg = false;  
+                this.confirmheadShotImg = false;
             } else {
-                this.confirmheadShotImg = true;   
-                this.onFileChange();              
+                this.confirmheadShotImg = true;
+                this.onFileChange();
             }
         },
         onFileChange() {
             const HeadImage = this.selectedFile;
             const memberId = localStorage.getItem('memberId');
-           
+
             this.headImageUpdated = true;
             this.HeadImgisUploading = true;
             this.confirmheadShotImg = true;
@@ -599,8 +696,8 @@ const appresume = createApp({
             }
 
             fetch('/api/UpdateResume/UpdateHeadShotImage', {
-                method: 'POST', 
-                body: formData, 
+                method: 'POST',
+                body: formData,
             })
                 .then(response => response.json())
                 .then(data => {
@@ -608,7 +705,7 @@ const appresume = createApp({
                         console.log('Profile picture updated successfully');
                         this.loadHeadShotImage();
                         this.HeadImgisUploading = false;
-                        
+
                     } else {
                         console.log('Failed to update profile picture: ' + data.message);
                         this.HeadImgisUploading = false;
@@ -618,21 +715,21 @@ const appresume = createApp({
                     console.error('Error updating profile picture:', error);
                     this.HeadImgisUploading = false;
                 });
-            
-            
+
+
         },
         HeadImgChange(event) {
             this.selectedFile = event.target.files[0];
         },
         loadHeadShotImage() {
             const memberId = localStorage.getItem('memberId');
-            this.editMode = false; 
+            this.editMode = false;
             fetch(`/api/UpdateResume/GetHeadShotImage?memberId=${memberId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.headShotImage) {
                         this.headShotImage = data.headShotImage;
-                        localStorage.setItem('headShotImage', data.headShotImage); 
+                        localStorage.setItem('headShotImage', data.headShotImage);
                     } else {
                         this.headShotImage = '';
                     }
@@ -642,10 +739,9 @@ const appresume = createApp({
                 });
         },
         toggleEditMode() {
-            this.editMode = !this.editMode;  
+            this.editMode = !this.editMode;
         },
-        toggleLicenseEditMode(index)
-        {
+        toggleLicenseEditMode(index) {
             this.licenses[index].licenseEditMode = !this.licenses[index].licenseEditMode;
 
             // 如果重新進入編輯模式，則取消“確認上傳”的禁用
@@ -713,8 +809,7 @@ const appresume = createApp({
                     const modal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
                     modal.show();
                 });
-        }
-    },
-    
+        },
+    }
 });
 appresume.mount('#vue-wrappers');

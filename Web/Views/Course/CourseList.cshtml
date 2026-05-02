@@ -210,10 +210,12 @@
             <div class="lh-tutor-card__main d-flex pb-3 pb-md-0 pt-md-2">
                 <div class="lh-tutor-images col-3 col-sm-2 d-flex flex-column align-items-center">
                     <div class="lh-tutor-images__head position-relative">
-                        <img class="tutor-headshot rounded-circle"
-                             :src="courseCard.tutorHeadShotImage" />
-                        <img class="tutor-nation-icon rounded-circle border border-white position-absolute"
-                             :src="courseCard.tutorFlagImage.replace('~', '')" />
+                        <img class="lazyload tutor-headshot rounded-circle"
+                             :data-src="courseCard.tutorHeadShotImage"
+                             data-expand="300" />
+                        <img class="lazyload tutor-nation-icon rounded-circle border border-white position-absolute"
+                             :data-src="courseCard.tutorFlagImage.replace('~', '')"
+                             data-expand="300" />
                     </div>
                     <div :class="['lh-tutor-follow mt-2', {'following': courseCard.followingStatus}]"
                          v-on:click="toggleFollow(courseCard)">
@@ -287,7 +289,7 @@
                 <div class="tutor-intro-media-container col-12 mx-auto">
                     <a v-if="courseCard.courseVideo" href="#" class="btn btn-default p-0" data-bs-toggle="modal" data-bs-target="#videoModal"
                        :data-bs-video="courseCard.courseVideo">
-                        <img :src="courseCard.courseVideoThumbnail" alt="">
+                        <img class="lazyload" :data-src="courseCard.courseVideoThumbnail" data-expand="300" alt="">
                     </a>
                     <img v-if="courseCard.courseImages.length > 0" v-for="(image, index) in courseCard.courseImages" :key="index" :src="image.imageUrl" alt="">
                 </div>
@@ -353,7 +355,7 @@
                 <div class="modal-body">
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     <div>
-                        <iframe width="100%" height="350" src=""></iframe>
+                        <iframe class="lazyload" width="100%" height="350" :data-src="" data-expand="300"></iframe>
                     </div>
                 </div>
             </div>
@@ -426,7 +428,7 @@
      aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <partial name="_BookingTablePartial" />
+            <partial name="~/Views/Course/_BookingTablePartial.cshtml" />
         </div>
     </div>
 </div>
@@ -437,5 +439,6 @@
     <script src="~/js/course_list/course_list_nested_dropdown.js"></script>
     <script src="~/lib/myvue/vue.global.prod.js" asp-append-version="true"></script>
     <script src="~/lib/lodash.js/lodash.min.js"></script>
+    <script src="~/lib/lazysizes/lazysizes.min.js"></script>
     <script type="module" src="~/js/course_list/course_list_app.js"></script>
 }

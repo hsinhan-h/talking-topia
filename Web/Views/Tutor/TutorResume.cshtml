@@ -11,6 +11,7 @@
     <link href="~/css/layout.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/normalize.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/css/apply_resume.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
 }
 
@@ -53,7 +54,19 @@
                             <span class="visually-hidden">Loading...</span>
                         </div>
                     </div>
-                    
+                    <div class="">
+                        <button type="button" @@click="changeToAICheck" class="btn textbtncolor btnbg btnbghover resume_btn bgc m-2">是否需要生成定裝照服務</button>
+                    </div>
+                    <div v-if="imagesData && imagesData.some(image => image.url1 || image.url2 || image.url3)">
+                        <div class="col-12 d-flex justify-content-start align-items-center m-2"v-for="(image, index) in imagesData" :key="index">
+                            <img :src="image.url1" class="col-4 mx-2 AI_Image_Item" @@click="UpdateFinaleAIImageUrl(image.url1)" />
+                            <img :src="image.url2" class="col-4 mx-2 AI_Image_Item" @@click="UpdateFinaleAIImageUrl(image.url2)"/>
+                            <img :src="image.url3" class="col-4 mx-2 AI_Image_Item" @@click="UpdateFinaleAIImageUrl(image.url3)"/>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" v-if="imagesData && imagesData.some(image => image.url1 || image.url2 || image.url3)" >
+                        <i class="fa-solid fa-image fa-2xl" style="color: #B197FC;"></i><p class="textbtncolorgreen m-2 ">請選擇您喜歡的定裝照</p>
+                    </div>
                     <div class="col-12 d-flex justify-content-end">
 
                         <button type="button" @@click="toggleEditMode" class="btn textbtncolor btnbg btnbghover resume_btn bgc mb-2 ">
@@ -145,7 +158,7 @@
 
                             <!-- 放大鏡圖標 -->
                             <i class="fa-solid fa-magnifying-glass m-2 icon_Headimg_hover"
-                               style="color: #63E6BE;" @@click="downloadFile(index)"></i>
+                                   style="color: #63E6BE;" @@click="downloadFile(index)"><span class="textbtncolorgreen mx-2">預覽已上傳證照</span></i>
 
                             <!-- 編輯按鈕 -->
                             <button type="button" @@click="toggleLicenseEditMode(index)"
@@ -289,6 +302,7 @@
     {
         <script src="~/lib/myvue/vue.global.min.js " asp-append-version="true"></script>
         <script src="~/js/resume_dropdown.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     }
     <script>
         let memberId = '@ViewData["MemberId"]';

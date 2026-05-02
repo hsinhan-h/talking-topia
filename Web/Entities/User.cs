@@ -14,14 +14,10 @@ public partial class User
     public string Password { get; set; }
 
     public string LineId { get; set; }
+
     public string PictureUrl { get; set; }
 
     public virtual ICollection<Member> Members { get; set; } = new List<Member>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-
-    public static implicit operator User(Member v)
-    {
-        throw new NotImplementedException();
-    }
 }

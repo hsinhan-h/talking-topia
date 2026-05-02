@@ -20,6 +20,10 @@
         /// </summary>
         public string BookingTime { get; set; }
         /// <summary>
+        /// 學生ID
+        /// </summary>
+        public int StudentId { get; set; }
+        /// <summary>
         /// 學生名稱
         /// </summary>
         public string FullName { get; set; }

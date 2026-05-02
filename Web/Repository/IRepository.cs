@@ -21,9 +21,9 @@ namespace Web.Repository
         Task CommitAsync();
         Task RollbackAsync();
         Task<Member> GetMemberByIdAsync(int memberId);
-        Task<TutorTimeSlot> GetTutorTimeSlotAsync(int tutorId, int courseHourId, int weekday);
 
         Task<Member> GetMemberByLineIdAsync(string lineId);
+        Task<Course> GetCourseByIdAsync(int courseId);
         
     }
 }

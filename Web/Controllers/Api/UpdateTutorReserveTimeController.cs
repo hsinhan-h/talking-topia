@@ -21,7 +21,6 @@ namespace Web.Controllers.Api
         {
             try
             {
-                // 1. 刪除該會員的舊有時段資料
                 await _tutorDataService.DeleteTimeSlotsForMember(memberId);
                 return Ok(new { success = true });
 

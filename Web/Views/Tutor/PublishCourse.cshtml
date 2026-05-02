@@ -32,11 +32,11 @@
                             @{
                                 if(ViewBag.IsTutor == true)
                                 {
-                                    <button class="btn lh-backstage-submit-btn mt-3 li-backstage-publish-btn"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#lh-backstage-tutor-data-add">
-                                上架課程
-                                    </button>
+                                            <button class="btn lh-backstage-submit-btn mt-3 li-backstage-publish-btn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#lh-backstage-tutor-data-add">
+                                        上架課程
+                                            </button>
                                 }
                             }
                             <br />
@@ -164,13 +164,22 @@
                             </div>
                             <div class="col-12 col-md-2">
                                 <div class="form-floating">
-                                    <input type="file"
+                                    @* <input type="file"
                                            class="form-control"
                                            id="floatingInput3"
                                            aria-describedby="inputGroupFileAddon04"
                                            aria-label="Upload"
                                            value="" />
-                                    <label for="floatingInput3">請上傳一張自介照片(必填)</label>
+                                    <label for="floatingInput3">請上傳一張自介照片(必填)</label> *@
+                                    <input type="text"
+                                           class="form-control"
+                                           id="floatingInput1"
+                                           placeholder=""
+                                           value="   "
+                                           disabled="disabled" />
+                                    <label for="floatingInput1">自介照片</label>
+                                    <!-- 顯示圖片 -->
+                                    <img :src="[[ bookingDetails.thumbnail ]]" alt="Booking Thumbnail" style="width: 100px; height: 100px"/>
                                 </div>
                             </div>
                             <div class="col-12 col-md-2">
@@ -193,13 +202,31 @@
                             </div>
                             <div class="col-12 col-md-4">
                                 <div class="form-floating mb-3">
-                                    <input type="file"
+                                    @* <input type="file"
                                            class="form-control"
                                            id="floatingInput5"
                                            aria-describedby="inputGroupFileAddon04"
                                            aria-label="Upload"
                                            multiple />
-                                    <label for="floatingInput5">請上傳多張課程圖片(必填)</label>
+                                    <label for="floatingInput5">請上傳多張課程圖片(必填)</label> *@
+                                    <input type="text"
+                                           class="form-control"
+                                           id="floatingInput1"
+                                           placeholder=""
+                                           value="   "
+                                           disabled="disabled" />
+                                    <label for="floatingInput1">課程圖片</label>
+                                    <div v-if="bookingDetailImages && bookingDetailImages.length"
+                                         style="display: flex; flex-wrap: nowrap; overflow-x: auto;">
+                                        <div v-for="(imageUrl, index) in bookingDetailImages"
+                                             :key="index"
+                                             style="margin-right: 10px;">
+                                            <img :src="[[ imageUrl ]]" :alt="'Image ' + index" style="width: 100px; height: 100px" />
+                                        </div>
+                                    </div>
+                                    <div v-else>
+                                        <p>沒有照片</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -534,6 +561,7 @@
             data() {
                 return {
                     bookingDetails: {},
+                    bookingDetailImages: {},
 
                     CourseCategoryId: '', //存檔的欄位
                     SubjectId: '',
@@ -566,7 +594,9 @@
                     axios.get(`/api/PublishCourseApi/${CourseId}`)
                         .then((response) => {
                             this.bookingDetails = response.data.bookingList[0]; // 正確設置 this.bookingDetails
+                        this.bookingDetailImages = response.data.bookingList[0].couresImagesList
                             console.log(this.bookingDetails);
+                            console.log(this.bookingDetailImages);
                         })
                         .catch((error) => {
                             console.error("Error fetching booking details:", error);

@@ -299,37 +299,37 @@
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-1" name="Schedule[1].Weekday" value="1">
-                                    <label class="form-check-label" for="monday">星期一</label>
+                                    <label class="form-check-label" for="">星期一</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-2" name="Schedule[2].Weekday" value="2">
-                                    <label class="form-check-label" for="tuesday">星期二</label>
+                                    <label class="form-check-label" for="">星期二</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-3" name="Schedule[3].Weekday" value="3">
-                                    <label class="form-check-label" for="wednesday">星期三</label>
+                                    <label class="form-check-label" for="">星期三</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-4" name="Schedule[4].Weekday" value="4">
-                                    <label class="form-check-label" for="thursday">星期四</label>
+                                    <label class="form-check-label" for="">星期四</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-5" name="Schedule[5].Weekday" value="5">
-                                    <label class="form-check-label" for="friday">星期五</label>
+                                    <label class="form-check-label" for="">星期五</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-6" name="Schedule[6].Weekday" value="6">
-                                    <label class="form-check-label" for="saturday">星期六</label>
+                                    <label class="form-check-label" for="">星期六</label>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input Weekday"
                                            type="checkbox" id="weekday-0" name="Schedule[7].Weekday" value="0">
-                                    <label class="form-check-label" for="sunday">星期日</label>
+                                    <label class="form-check-label" for="">星期日</label>
                                 </div>
                             </div>
                         </div>
@@ -356,20 +356,8 @@
     </div>
 </div>
 <div id="toast" data-message="@message" data-header="@header" class="d-none">
-123
+toast
 </div>
-@* <div id="toas2" class="toast" role="alert" aria-live="assertive" aria-atomic="true"
-     data-bs-delay="2000" style="position: fixed; top: 50px; right: 20px; z-index: 20;"
-     data-message="@message" data-header="@header">
-    <div class="toast-header">
-        <img src="~/image/logo_imgs/talkingtopia logo_final.png" class="rounded me-2 img-fluid w-25" alt="...">
-        <strong class="me-auto ">@header</strong>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    <div class="toast-body p-2 text-center my-3 fs-3" style="color: #ff5f5f;">
-        @message
-    </div>
-</div> *@
 
 @section topCSS {
     <link rel="stylesheet" href="~/css/backstage.css?v=202408211917" />
@@ -380,3 +368,7 @@
     <script src="~/js/timeslot-setting.js" asp-append-version="true"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 }
+<script>
+    let memberId = '@ViewData["MemberId"]';
+    localStorage.setItem('memberId', memberId);
+</script>

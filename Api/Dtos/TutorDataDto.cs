@@ -18,6 +18,7 @@ namespace Api.Dtos
 
         public string RejectReason { get; set; }
         public string ResumeStatus { get; set; }
+        public string RequestAI { get; set; }
     }
     public class UpdateTutorDataDto
     {
@@ -43,4 +44,17 @@ namespace Api.Dtos
         public string CurrentMonth { get; set; }
         
     }
+    public class TutorHeadImgDto
+    {
+        public int MemberId { get; set; }
+        public string HeadImgUrl { get; set; }
+
+        public string FileName { get; set; }
+    }
+    public class UpdateImageDto
+    {
+        public int MemberId { get; set; }
+        public List<string> ImageUrls { get; set; }
+    }
+
 }

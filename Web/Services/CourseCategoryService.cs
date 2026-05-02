@@ -1,18 +1,27 @@
 ﻿using ApplicationCore.Entities;
+using Web.Helpers;
 
 namespace Web.Services
 {
     public class CourseCategoryService
     {
         private readonly IRepository _repository;
+        private readonly RedisCacheHelper _cacheHelper;
 
-        public CourseCategoryService(IRepository repository)
+        public CourseCategoryService(IRepository repository, RedisCacheHelper cacheHelper)
         {
             _repository = repository;
+            _cacheHelper = cacheHelper;
         }
 
         public async Task<List<CourseCategoryViewModel>> GetCourseCategoriesWithSubjectsAsync()
         {
+            //如果redis cache已有類別科目清單資料, 直接return cache資料
+            var cacheKey = "CourseCategoriesWithSubjects";
+            var cachedData = await _cacheHelper.GetFromCacheAsync<List<CourseCategoryViewModel>>(cacheKey);
+            if (cachedData != null)
+                return cachedData;
+
             var courseCategoriesWithSubjects = await (
                 from category in _repository.GetAll<Entities.CourseCategory>()
                 join subject in _repository.GetAll<Entities.CourseSubject>()
@@ -25,6 +34,10 @@ namespace Web.Services
                         SubjectName = s.SubjectName
                     }).ToList()
                 }).ToListAsync();
+
+            //將類別及科目清單查詢結果存到redis cache, SlidingExpiration設為30分, AbsoluteExpirationRelativeToNow設為1小時
+            await _cacheHelper.SetCacheAsync(cacheKey, courseCategoriesWithSubjects, TimeSpan.FromMinutes(30), TimeSpan.FromHours(1));
+
             return courseCategoriesWithSubjects;
         }
 
@@ -48,22 +61,29 @@ namespace Web.Services
         public async Task<List<CourseTopicTabViewModel>> GetCoursesByCategoryAsync(string categoryName)
         {
             var courses = await (
-        from category in _repository.GetAll<Entities.CourseCategory>()
-        join subject in _repository.GetAll<Entities.CourseSubject>() on category.CourseCategoryId equals subject.CourseCategoryId
-        join course in _repository.GetAll<Entities.Course>() on subject.SubjectId equals course.SubjectId
-        join image in _repository.GetAll<Entities.CourseImage>() on course.CourseId equals image.CourseId
-        where category.CategorytName == categoryName
-        group new { course, image, subject } by subject.SubjectName into subjectGroup
-        select subjectGroup.FirstOrDefault() // 每個 subject 只取一筆課程
-    ).Take(6).ToListAsync(); // 確保每個分類只渲染 6 筆資料
+                from category in _repository.GetAll<Entities.CourseCategory>()
+                join subject in _repository.GetAll<Entities.CourseSubject>() on category.CourseCategoryId equals subject.CourseCategoryId
+                join course in _repository.GetAll<Entities.Course>() on subject.SubjectId equals course.SubjectId
+                join image in _repository.GetAll<Entities.CourseImage>() on course.CourseId equals image.CourseId
+                where category.CategorytName == categoryName
+                select new { course, image, subject }
+            ).ToListAsync();  // 將查詢結果先轉換為 List
 
-            return courses.Select(s => new CourseTopicTabViewModel
+            // 在客戶端進行分組和選擇操作
+            var groupedCourses = courses
+                .GroupBy(c => c.subject.SubjectName)
+                .Select(group => group.FirstOrDefault()) // 取每個 group 的第一個課程
+                .Take(6)
+                .ToList();
+
+            return groupedCourses.Select(s => new CourseTopicTabViewModel
             {
                 SubjectName = s.subject.SubjectName,
                 TutorHeadShotImage = s.image.ImageUrl,
                 TwentyFiveMinUnitPrice = s.course.TwentyFiveMinUnitPrice
             }).ToList();
         }
+
 
 
 
@@ -85,6 +105,7 @@ namespace Web.Services
 
             return courseCategoriesWithCourses;
         }
+
 
 
 

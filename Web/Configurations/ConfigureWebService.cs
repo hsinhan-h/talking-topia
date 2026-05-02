@@ -12,7 +12,6 @@ namespace Web.Configurations
             services.AddScoped<OrderViewModelService>();
             services.AddScoped<MemberAppointmentService>();
             services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
-            //services.AddScoped<DifySearchService>();
 
             return services;
         }

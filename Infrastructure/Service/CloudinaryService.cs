@@ -1,5 +1,7 @@
 ﻿using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace Web.Services
 {
@@ -15,6 +17,11 @@ namespace Web.Services
 
             _cloudinary = new Cloudinary(cloudinaryAccount);
         }
+        /// <summary>
+        /// 圖片上傳Cloudinary，取回圖片路徑網址
+        /// </summary>
+        /// <param name="imageFile"></param>
+        /// <returns></returns>
         public async Task<string> UploadImageAsync(IFormFile imageFile)
         {
             if (imageFile.Length > 0)
@@ -33,6 +40,11 @@ namespace Web.Services
 
             return null;
         }
+        /// <summary>
+        /// 檔案上傳Cloudinary，取回檔案路徑網址 (前端程式未實作此功能)
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
         public async Task<string> UploadFileAsync(IFormFile file)
         {
             if (file.Length > 0)

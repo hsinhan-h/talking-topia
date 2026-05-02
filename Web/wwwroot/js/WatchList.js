@@ -16,7 +16,7 @@ const tutorCardComponent = {
             </div>
             <div class="lh-tutor-card__body">
                 <div class="tutor-title-and-ranking d-flex justify-between align-items-center">
-                    <a class="tutor-description-title col-8">{{ card.CourseTitle }}</a>
+                    <span class="tutor-description-title col-8">{{ card.CourseTitle }}</span>
                     <div class="tutor-ranking col-4 d-flex justify-content-end">
                         <i class="bi bi-star-fill pe-1"></i><span>{{ card.Rating }}</span>
                     </div>
@@ -33,7 +33,7 @@ const tutorCardComponent = {
                 </div>
                 <div class="contact-btns-wrapper d-flex gap-1">
                     <button type="button" class="lh-tutor-card__book-btn col-12" @click="$emit('book-course', card.CourseId)">
-                        預約體驗
+                        前往課程頁面
                     </button>
                 </div>
             </div>
@@ -86,10 +86,10 @@ const watch = createApp({
 
             if (!$('.tutor-recommend-carousel').hasClass('slick-initialized')) {
                 $('.tutor-recommend-carousel').slick({
-                    infinite: false,
+                    infinite: true,
                     autoplay: false,
                     slidesToShow: slidesToShow,
-                    slidesToScroll: itemCount >= 5 ? 1 : 1,
+                    slidesToScroll: 1,
                     responsive: [
                         {
                             breakpoint: 480,

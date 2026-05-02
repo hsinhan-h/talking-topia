@@ -40,5 +40,13 @@ public partial class ApplyList
     /// </summary>
     public string RejectReason { get; set; }
 
+    public string AiimageUrl1 { get; set; }
+
+    public string AiimageUrl2 { get; set; }
+
+    public string AiimageUrl3 { get; set; }
+
+    public bool? AiimgageStatus { get; set; }
+
     public virtual Member Member { get; set; }
 }

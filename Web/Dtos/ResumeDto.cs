@@ -28,4 +28,25 @@
             get; set;
         }
     }
+    public class MemberIdDto
+    {
+        public int MemberId { get; set; }
+    }
+    public class AIImagesResponseDto
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public List<AIImage> Data { get; set; }
+    }
+    public class AIImage
+    {
+        public string Url1 { get; set; }
+        public string Url2 { get; set; }
+        public string Url3 { get; set; }
+    }
+    public class UpdateAIImgDto
+    {
+        public int MemberId { get; set; }
+        public string Url { get; set; }
+    }
 }

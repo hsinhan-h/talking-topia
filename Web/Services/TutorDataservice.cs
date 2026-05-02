@@ -293,6 +293,13 @@ namespace Web.Services
             return qVM;
         }
 
+        public async Task<Entities.TutorTimeSlot> GetTutorTimeSlotAsync(int tutorId, int courseHourId, int weekday)
+        {
+            return await _repository.GetAll<Entities.TutorTimeSlot>()
+                            .FirstOrDefaultAsync(x => x.TutorId == tutorId
+                                                    && x.CourseHourId == courseHourId
+                                                    && x.Weekday == weekday);
+        }
         public async Task<TutorDataViewModel> CreateTutorTimeData(TutorDataViewModel qVM, int memberId)
         {
             await _repository.BeginTransActionAsync();
@@ -306,30 +313,65 @@ namespace Web.Services
                     return qVM;
                 }
 
-                foreach (var schedule in qVM.Schedule.Values)
+                // 1. 從資料庫取得該會員的所有時段資料
+                var existingSlots = await _repository.GetAll<Entities.TutorTimeSlot>()
+                    .Where(x => x.TutorId == memberId)
+                    .ToListAsync();
+
+                // 2. 收集前端提交的所有時段
+                var submittedSlots = new List<(int Weekday, int CourseHourId)>();
+                if (qVM.Schedule != null && qVM.Schedule.Count > 0)
                 {
-                    var weekday = schedule.Weekday;
-                    foreach (var courseHourId in schedule.CouseHoursId)
+                    foreach (var schedule in qVM.Schedule.Values)
                     {
-                        var existingSlot = await _repository.GetTutorTimeSlotAsync(memberId, courseHourId, weekday);
-                        if (existingSlot == null)
+                        foreach (var courseHourId in schedule.CouseHoursId)
                         {
-                            var courseHour = new Entities.TutorTimeSlot
-                            {
-                                TutorId = memberId,
-                                CourseHourId = courseHourId,
-                                Weekday = weekday,
-                                Cdate = DateTime.Now
-                            };
-                            _repository.Create(courseHour);
+                            submittedSlots.Add((schedule.Weekday, courseHourId));
                         }
                     }
                 }
 
+                // 3. 找出需要刪除的時段（資料庫有但前端沒有）
+                var slotsToDelete = existingSlots
+                    .Where(slot => !submittedSlots.Contains((slot.Weekday, slot.CourseHourId)))
+                    .ToList();
+
+                foreach (var slot in slotsToDelete)
+                {
+                    _repository.Delete(slot);
+                }
+
+                // 4. 找出需要新增的時段（前端有但資料庫沒有）
+                foreach (var (weekday, courseHourId) in submittedSlots)
+                {
+                    var existingSlot = existingSlots
+                        .FirstOrDefault(x => x.CourseHourId == courseHourId && x.Weekday == weekday);
+
+                    if (existingSlot == null)
+                    {
+                        var newSlot = new Entities.TutorTimeSlot
+                        {
+                            TutorId = memberId,
+                            CourseHourId = courseHourId,
+                            Weekday = weekday,
+                            Cdate = DateTime.Now
+                        };
+                        _repository.Create(newSlot);
+                    }
+                    else
+                    {
+                        // 更新現有的時段資料
+                        existingSlot.Cdate = DateTime.Now;
+                        _repository.Update(existingSlot);
+                    }
+                }
+
+                // 5. 保存變更
                 await _repository.SaveChangesAsync();
                 await _repository.CommitAsync();
+
                 qVM.Success = true;
-                qVM.Message = "會員資料新增成功";
+                qVM.Message = "教師資料已成功更新";
             }
             catch (Exception ex)
             {
@@ -344,6 +386,7 @@ namespace Web.Services
             return qVM;
         }
 
+
         public async Task<TutorDataViewModel> DeleteTimeSlotsForMember(int memberId)
         {
             var tutortime = new TutorDataViewModel
@@ -353,14 +396,14 @@ namespace Web.Services
             var timeSlots = await (from tutorTimeSloot in _repository.GetAll<Entities.TutorTimeSlot>()
                                    where tutorTimeSloot.TutorId == memberId
                                    select tutorTimeSloot).ToListAsync();
-            tutortime.AvailableReservation = (from tutorTimeSloot in timeSlots
-                                                    join coursehour in _repository.GetAll<Entities.CourseHour>()
-                                                    on tutorTimeSloot.CourseHourId equals coursehour.CourseHourId
-                                                    select new AvailReservation
-                                                    {
-                                                        Weekday = tutorTimeSloot.Weekday,
-                                                        Coursehours = coursehour.Hour,
-                                                    }).ToList();
+            //tutortime.AvailableReservation = (from tutorTimeSloot in timeSlots
+            //                                        join coursehour in _repository.GetAll<Entities.CourseHour>()
+            //                                        on tutorTimeSloot.CourseHourId equals coursehour.CourseHourId
+            //                                        select new AvailReservation
+            //                                        {
+            //                                            Weekday = tutorTimeSloot.Weekday,
+            //                                            Coursehours = coursehour.Hour,
+            //                                        }).ToList();
 
             foreach (var timeSlot in timeSlots)
             {

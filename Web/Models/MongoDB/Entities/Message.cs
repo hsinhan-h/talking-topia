@@ -16,8 +16,14 @@ public class Message
     [BsonElement("SenderId")]
     public string SenderId { get; set; }
 
+    [BsonElement("SenderName")]
+    public string SenderName { get; set; }
+
     [BsonElement("ReceiverId")]
     public string ReceiverId { get; set; }
+
+    [BsonElement("ReceiverName")]
+    public string ReceiverName { get; set; }
 
     [BsonElement("Content")]
     public string Content { get; set; }

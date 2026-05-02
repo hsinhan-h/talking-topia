@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApplicationCore.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -21,5 +22,6 @@ namespace ApplicationCore.Interfaces
         bool Any(Expression<Func<TEntity, bool>> predicate);
         List<TEntity> List(Expression<Func<TEntity, bool>> predicate);
         List<TEntity> List();
+        IQueryable<Course> GetProductsByPageAsQueryable(int skipIndex, int count);
     }
 }

@@ -33,8 +33,6 @@ namespace Web.Controllers
             return View(courses);
         }
 
-
-
         [HttpGet]
         public async Task<IActionResult> GetCoursesByCategory(string categoryName)
         {

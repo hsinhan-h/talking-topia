@@ -30,7 +30,11 @@ namespace Web.Controllers.Api
             }
             return Ok();
         }
-
+        /// <summary>
+        /// 給課程上傳圖片的API
+        /// </summary>
+        /// <param name="images"></param>
+        /// <returns></returns>
         [HttpPost("UploadImages")]
         public async Task<IActionResult> UploadImages(List<IFormFile> images)
         {

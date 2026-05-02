@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+
 namespace ApplicationCore.Entities;
 
 public partial class Booking
@@ -39,6 +40,11 @@ public partial class Booking
     /// 更新時間
     /// </summary>
     public DateTime? Udate { get; set; }
+
+    /// <summary>
+    /// 已發送通知次數
+    /// </summary>
+    public int? NotifyCount { get; set; }
 
     public virtual Course Course { get; set; }
 

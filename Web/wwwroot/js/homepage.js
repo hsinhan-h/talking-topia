@@ -1,10 +1,6 @@
 
-
-
 $(document).ready(function () {
-    
-    
-
+   
     // 監聽 tab 點擊事件
     $('.lh-layout-tab').on('click', function () {
         // 移除所有 tab 的 active 樣式
@@ -14,22 +10,24 @@ $(document).ready(function () {
 
         // 獲取對應的 category 名稱 (中文)
         var category = $(this).data('category');
-                
 
         loadCourses(category);
     });
+
+    // 頁面載入時模擬點擊預設的 tab
+    $('.lh-layout-tab.active').trigger('click');
 
     // 發送 AJAX 請求來獲取對應分類的課程
     function loadCourses(category) {
         $.ajax({
             url: '/Home/GetCoursesByCategory',
             type: 'GET',
-            data: { categoryName: category }, 
+            data: { categoryName: category },
             success: function (data) {
                 renderCourses(data);  // 成功獲取數據後渲染
             },
             error: function (err) {
-                
+                console.error("Failed to load courses:", err);
             }
         });
     }
@@ -45,7 +43,6 @@ $(document).ready(function () {
             <a href="/Course/CourseList?page=1&subject=${encodeURIComponent(course.subjectName)}&sortOption=default" class="lh-layout-course-item">
                 <img src="${course.tutorHeadShotImage}" alt="Teacher's Image" />
                 <h3>${course.subjectName}</h3>
-
             </a>
         `;
             courseList.append(courseItem); // 動態添加每個課程卡片

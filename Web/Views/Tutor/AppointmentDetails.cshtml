@@ -29,7 +29,11 @@
                                         <tr>
                                             <td>@item.BookingDate</td>
                                             <td>@item.BookingTime</td>
-                                            <td>@item.FullName</td>
+                                            <td>
+                                                <a asp-controller="Chat" asp-action="Index" asp-route-id="@item.StudentId" asp-route-type="student">
+                                                    @item.FullName (傳送訊息)
+                                                </a>
+                                            </td>
                                             <td>@item.Subject</td>
                                             <td>@item.CourseTitle</td>
                                         </tr>

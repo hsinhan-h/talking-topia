@@ -1,0 +1,19 @@
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.402'  # 根據你的專案要求選擇版本
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'restore'
+    restoreSolution: '**/*.sln'  # 指向你的解決方案文件
+    verbosityRestore: 'Detailed'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'  # 確保所有 csproj 文件都還原

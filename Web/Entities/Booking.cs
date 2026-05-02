@@ -40,6 +40,11 @@ public partial class Booking
     /// </summary>
     public DateTime? Udate { get; set; }
 
+    /// <summary>
+    /// 已發送通知次數
+    /// </summary>
+    public int? NotifyCount { get; set; }
+
     public virtual Course Course { get; set; }
 
     public virtual Member Student { get; set; }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using Web.Dtos;
 using Web.Services;
 using static Web.ViewModels.TutorResumeViewModel;
@@ -7,7 +9,6 @@ using static Web.ViewModels.TutorResumeViewModel;
 namespace Web.Controllers.Api
 {
     [Route("api/[controller]/[action]")]
-    //[Route("api/[controller]")]
     [ApiController]
     public class UpdateResumeController : ControllerBase
     {
@@ -28,7 +29,6 @@ namespace Web.Controllers.Api
         {
             try
             {
-                // 獲取上傳的文件（如果有多個文件）
                 var files = Request.Form.Files;
                 var fileUrls = new List<string>();
 
@@ -103,8 +103,8 @@ namespace Web.Controllers.Api
                 var newLicense = new ProfessionalLicense
                 {
                     MemberId = request.MemberId,
-                    ProfessionalLicenseName = string.Empty, 
-                    ProfessionalLicenseUrl = string.Empty,  
+                    ProfessionalLicenseName = string.Empty,
+                    ProfessionalLicenseUrl = string.Empty,
                     Cdate = DateTime.Now,
                     Udate = null
                 };
@@ -173,73 +173,73 @@ namespace Web.Controllers.Api
 
             return Ok(new { success = true, message = result.Message });
         }
+
         [HttpPost]
-        [HttpPost]
-public async Task<IActionResult> UpdateResumeWorkExp([FromForm] ResumeDto model)
-{
-    try
-    {
-        // 獲取上傳的文件（如果有多個文件）
-        var files = Request.Form.Files;
-        var fileUrls = new List<string>();
-
-        // 遍歷每個文件，逐一上傳
-        foreach (var file in files)
+        public async Task<IActionResult> UpdateResumeWorkExp([FromForm] ResumeDto model)
         {
-            if (file != null && file.Length > 0)
+            try
             {
-                // 使用 Cloudinary 上傳，並取得返回的 URL
-                var fileUrl = await _cloudinaryService.UploadFileAsync(file);
-                fileUrls.Add(fileUrl);
-            }
-        }
+                // 獲取上傳的文件（如果有多個文件）
+                var files = Request.Form.Files;
+                var fileUrls = new List<string>();
 
-        // 如果沒有上傳新文件，則使用原本的 URL 列表
-        if (!fileUrls.Any())
-        {
-            fileUrls = model.WorkBackground.Select(w => w.WorkExperienceFile).ToList();
-        }
-
-        // 確保 WorkBackground 有數據
-        if (model.WorkBackground != null && model.WorkBackground.Any())
-        {
-            // 遍歷 WorkBackground 列表，將 DTO 轉換為實體類 ResumeWorkExp
-            foreach (var workExperienceDto in model.WorkBackground)
-            {
-                // 將 DTO 轉換為實體
-                var workExperience = new ResumeWorkExp
+                // 遍歷每個文件，逐一上傳
+                foreach (var file in files)
                 {
-                    WorkExperienceId = workExperienceDto.WorkExperienceId,
-                    WorkName = workExperienceDto.WorkName,
-                    WorkStartDate = workExperienceDto.WorkStartDate,
-                    WorkEndDate = workExperienceDto.WorkEndDate,
-                    WorkExperienceFile = workExperienceDto.WorkExperienceFile
-                };
+                    if (file != null && file.Length > 0)
+                    {
+                        // 使用 Cloudinary 上傳，並取得返回的 URL
+                        var fileUrl = await _cloudinaryService.UploadFileAsync(file);
+                        fileUrls.Add(fileUrl);
+                    }
+                }
 
-                // 調用服務層，傳遞轉換後的實體
-                var newWorkExperienceId = await _resumeDataService.ChangeResumeWorkExp(
-                    model.MemberId,
-                    new List<ResumeWorkExp> { workExperience },  // 傳遞單個工作經驗
-                    fileUrls
-                );
+                // 如果沒有上傳新文件，則使用原本的 URL 列表
+                if (!fileUrls.Any())
+                {
+                    fileUrls = model.WorkBackground.Select(w => w.WorkExperienceFile).ToList();
+                }
 
-                // 返回新生成的 WorkExperienceId（如果是新增）
-                return Ok(new { success = true, workExperienceId = newWorkExperienceId });
+                // 確保 WorkBackground 有數據
+                if (model.WorkBackground != null && model.WorkBackground.Any())
+                {
+                    // 遍歷 WorkBackground 列表，將 DTO 轉換為實體類 ResumeWorkExp
+                    foreach (var workExperienceDto in model.WorkBackground)
+                    {
+                        // 將 DTO 轉換為實體
+                        var workExperience = new ResumeWorkExp
+                        {
+                            WorkExperienceId = workExperienceDto.WorkExperienceId,
+                            WorkName = workExperienceDto.WorkName,
+                            WorkStartDate = workExperienceDto.WorkStartDate,
+                            WorkEndDate = workExperienceDto.WorkEndDate,
+                            WorkExperienceFile = workExperienceDto.WorkExperienceFile
+                        };
+
+                        // 調用服務層，傳遞轉換後的實體
+                        var newWorkExperienceId = await _resumeDataService.ChangeResumeWorkExp(
+                            model.MemberId,
+                            new List<ResumeWorkExp> { workExperience },  // 傳遞單個工作經驗
+                            fileUrls
+                        );
+
+                        // 返回新生成的 WorkExperienceId（如果是新增）
+                        return Ok(new { success = true, workExperienceId = newWorkExperienceId });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = "No work background data provided" });
+                }
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                // 記錄具體的異常信息，方便調試
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
-        else
-        {
-            return BadRequest(new { success = false, message = "No work background data provided" });
-        }
-
-        return Ok(new { success = true });
-    }
-    catch (Exception ex)
-    {
-        // 記錄具體的異常信息，方便調試
-        return BadRequest(new { success = false, message = ex.Message });
-    }
-}
 
         [HttpPost]
         public async Task<IActionResult> UpdateHeadShotImage([FromForm] ResumeDto model)
@@ -298,6 +298,53 @@ public async Task<IActionResult> UpdateResumeWorkExp([FromForm] ResumeDto model)
                 professionalLicenseId = professionalLicense.ProlLicenseId,
                 professionalLicenseUrl = professionalLicense.ProlLicenseUrl
             });
+        }
+        //AI相關
+        [HttpPost]
+        public async Task<IActionResult> CheckAIStatus([FromBody] MemberIdDto dto)
+        {
+            var result = await _resumeDataService.CheckAIStatusFunction(dto.MemberId);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetApplyListImages([FromQuery] MemberIdDto dto)
+        {
+            var result = await _resumeDataService.GetAIimgesList(dto.MemberId);
+
+            if (!result.Success)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.Message
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = result.Message,
+                data = result.Data 
+            });
+        }
+        [HttpPut]
+        public async Task<IActionResult> UpdateAIimg([FromBody] UpdateAIImgDto dto)
+        {
+            var result = await _resumeDataService.UpdateAIimgfuction(dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { success = false, message = result.Message });
+            }
+
+            return Ok(new { success = true, message = result.Message });
         }
     }
 }

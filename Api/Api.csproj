@@ -9,8 +9,12 @@
 
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.26.2" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+	<PackageReference Include="Microsoft.SemanticKernel" Version="1.25.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.25.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.25.0" />
   </ItemGroup>
 
   <ItemGroup>

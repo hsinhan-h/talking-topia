@@ -11,14 +11,16 @@ namespace Web.Controllers.Api
     {
         private readonly MongoRepository _repository;
         private readonly IMemberService _memberService;
+        //private readonly ChatIndexViewModelService _chatIndexViewModelService;
 
         public ChatController(MongoRepository repository, IMemberService memberService)
         {
             _repository = repository;
             _memberService = memberService;
+            //_chatIndexViewModelService = chatIndexViewModelService;
         }
 
-        public async Task<IActionResult> Index(int courseId)
+        public async Task<IActionResult> Index(int id, string type)
         {
             // 抓SenderID
             var memberIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -29,18 +31,33 @@ namespace Web.Controllers.Api
 
             if (!result)
             { return RedirectToAction(nameof(AccountController.Account), "Account"); }
-
-            // 抓ReceiverId
-            int tutorId = await _memberService.GetTutorId(courseId);
-            
             string member = await _memberService.GetMemberName(memberId);
-            string tutor = await _memberService.GetTutorName(tutorId);
 
             ViewBag.SenderId = memberId;
             ViewBag.SenderName = member;
-            ViewBag.ReceiverId = tutorId;
-            ViewBag.ReceiverName = tutor;
 
+            if (type == "tutor")
+            {
+                // 抓ReceiverId
+                var tutor = await _memberService.GetTutor(id);
+                ViewBag.CourseId = id;
+                ViewBag.ReceiverId = tutor.MemberId;
+                ViewBag.ReceiverName = tutor.MemberName;
+                ViewBag.HeadShotImage = tutor.HeadShotImage;
+                ViewBag.CourseTitle = tutor.CourseTitle;
+                ViewBag.CourseSubTitle = tutor.CourseSubTitle;
+            }
+            else if (type == "student")
+            {
+                // 抓ReceiverId
+                var receiver = await _memberService.GetStudent(id);
+                ViewBag.CourseId = 0;
+                ViewBag.ReceiverId = receiver.MemberId;
+                ViewBag.ReceiverName = receiver.MemberName;
+                ViewBag.HeadShotImage = receiver.HeadShotImage;
+                ViewBag.CourseTitle = "";
+                ViewBag.CourseSubTitle = "";
+            }
             return View();
         }
 

@@ -1,4 +1,5 @@
-﻿using ApplicationCore.Entities;
+﻿using ApplicationCore.Dtos;
+using ApplicationCore.Entities;
 using ApplicationCore.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -77,22 +78,37 @@ namespace ApplicationCore.Services
             return result;
         }
 
-        public async Task<int> GetTutorId(int courseId)
+        public async Task<SignalRTutorDto> GetTutor(int courseId)
         {
             var course = await _courseRepository.FirstOrDefaultAsync(c => c.CourseId == courseId);
-            return course.TutorId;
+            var tutor = await _memberRepository.FirstOrDefaultAsync(x => x.MemberId == course.TutorId);
+            var result = new SignalRTutorDto
+            {
+                MemberId = tutor.MemberId,
+                MemberName = tutor.FirstName,
+                HeadShotImage = tutor.HeadShotImage,
+                CourseTitle = course.Title,
+                CourseSubTitle = course.SubTitle,
+            };
+            return result;
         }
 
         public async Task<string> GetMemberName(int memberId)
         {
             var result = await _memberRepository.FirstOrDefaultAsync(x => x.MemberId == memberId);
-            return result.FirstName + " " + result.LastName;
+            return result.FirstName;
         }
 
-        public async Task<string> GetTutorName(int tutorId)
+        public async Task<SignalRStudentDto> GetStudent(int studentId)
         {
-            var result = await _memberRepository.FirstOrDefaultAsync(x => x.MemberId == tutorId);
-            return result.FirstName + " " + result.LastName;
+            var student = await _memberRepository.FirstOrDefaultAsync(x => x.MemberId == studentId);
+            var result = new SignalRStudentDto
+            {
+                MemberId= student.MemberId,
+                MemberName= student.FirstName,
+                HeadShotImage= student.HeadShotImage,
+            };
+            return result;
         }
     }
 }

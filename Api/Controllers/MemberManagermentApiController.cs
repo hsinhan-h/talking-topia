@@ -150,7 +150,39 @@ namespace Api.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [HttpGet]
+        public async Task<ActionResult> GetDbImgUrlInformaiton(int memberId)
+        {
+            try
+            {
+                var imgUrl = await _memberManagermentApiService.GetDbImgUrlinforamtionfun(memberId);
+                return Ok(imgUrl);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
+        [HttpPut]
+        public async Task<ActionResult> UpdateImgbyAI([FromBody] UpdateImageDto dto)
+        {
+            if (dto == null || dto.MemberId <= 0 || dto.ImageUrls == null || !dto.ImageUrls.Any())
+            {
+                return BadRequest("無效的請求");
+            }
+
+            try
+            {
+                await _memberManagermentApiService.UpdateMemberImageUrlsAsync(dto.MemberId, dto.ImageUrls);
+                return Ok("圖片 URL 已成功更新");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"更新失敗: {ex.Message}");
+                return StatusCode(500, "更新圖片 URL 時發生錯誤");
+            }
+        }
 
 
     }

@@ -1,29 +1,74 @@
 ﻿@{
+    var courseId = ViewBag.CourseId;
     var senderId = ViewBag.SenderId;
     var senderName = ViewBag.SenderName;
     var receiverId = ViewBag.ReceiverId;
     var receiverName = ViewBag.ReceiverName;
+    var headShotImage = ViewBag.HeadShotImage;
+    var courseTitle = ViewBag.CourseTitle;
+    var courseSubTitle = ViewBag.CourseSubTitle;
+    string path = courseId != 0 ? Url.Content($"~/Course/CourseMainPage?courseId={courseId}") : "/";
 }
 
 <div class="container">
-    <div id="chat">
-        <p>您的 ID：@senderId</p>
-        <p>對方 ID：@receiverId</p>
-        <input type="text" id="messageInput" placeholder="輸入訊息" />
-        <button id="sendButton">發送訊息</button>
-        <ul id="messagesList"></ul>
+    <div class="row">
+        <div class="message-window col-12 col-md-3">
+            <div class="message-header">
+                <h5>個人檔案</h5>
+            </div>
+            <div class="message-list">
+                <div class="message-item">
+                    <a href="@path">
+                        <img class="profile-img" src="@headShotImage" alt="User" />
+                    </a>
+                    <h6 class="profile-name">@receiverName</h6>
+                    <p>@courseTitle</p>
+                    <p>@courseSubTitle</p>
+                </div>
+            </div>
+            <div class="message-footer">
+                <h5>注意事項</h5>
+            </div>
+            <div class="message-notes">
+                <ol>
+                    <li>訊息功能僅限課程安排與交流；為保障您的安全，對談中<strong>請勿洩露個人隱私資訊。</strong></li>
+                    <li>請保持禮貌與尊重，切勿傳送侮辱或其他不當訊息，以免觸法。</li>
+                    <li>請勿進行任何私下交易行為，務必通過官方管道進行付款及課程管理。</li>
+                    <li><strong>對話記錄將被平台保存，用於監控以確保交流安全，預防不當行為。</strong></li>
+                </ol>
+            </div>
+        </div>
+        <div class="chat-container col-12 col-md-9 " id="chat">
+            <!-- 訊息顯示 -->
+            <ul class="chat-body" id="messagesList">
+                <li class="chat-message d-flex">
+                    <div class="message-content">
+                        <strong>@receiverName</strong>
+                        <p>Hi， @senderName ！很高興你的來訊😊</p>
+                    </div>
+                </li>
+            </ul>
+            <!-- 輸入框 -->
+            <div class="chat-input col-12">
+                <textarea id="messageInput"
+                          placeholder="請輸入訊息 (換行請長按Shift鍵後按Enter鍵)"></textarea>
+                <button id="sendButton">➤</button>
+            </div>
+        </div>
     </div>
 </div>
+
+
 
 @section topCSS {
     <link href="~/css/message.css" rel="stylesheet" />
 }
 @section endJS {
     <script>
-        window.senderId = "@senderId";
-        window.senderName = "@senderName";
-        window.receiverId = "@receiverId";
-        window.receiverName = "@receiverName";
+        window.senderId = "@Html.Raw(senderId)";
+        window.senderName = "@Html.Raw(senderName)";
+        window.receiverId = "@Html.Raw(receiverId)";
+        window.receiverName = "@Html.Raw(receiverName)";
     </script>
     <script src="~/js/signalr/dist/browser/signalr.js"></script>
     <script src="~/js/chat.js" defer></script>

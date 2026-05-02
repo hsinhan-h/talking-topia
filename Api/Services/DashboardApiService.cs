@@ -51,7 +51,7 @@ namespace Api.Services
                 proportion = (todayOrderTotal) / 1.0;
             }
 
-            result.Proportion = proportion;
+            result.Proportion = Math.Round(proportion,2);
 
             // 本日熱銷課程
             var orders = await _orderRepository.ListAsync(o => o.TransactionDate > DateTime.Today);

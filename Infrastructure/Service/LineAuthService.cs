@@ -1,5 +1,6 @@
 ﻿using ApplicationCore.Dtos;
 using ApplicationCore.Interfaces;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -12,22 +13,31 @@ namespace Infrastructure.Service
 {
     public class LineAuthService : ILineAuthService
     {
-        private readonly string _clientId = "2006372467";
-        private readonly string _clientSecret = "1f42c2be3fd2e8783b2bcfc13370a584";
-        private readonly string _redirectUri = "https://localhost:7263/Account/SSOcallback";
+        private readonly string _clientId;
+        private readonly string _clientSecret;
+        private readonly string _redirectUri;
 
-        public async Task<string> GetAccessTokenAsync(string code)
+        public LineAuthService(IConfiguration configuration)
+        {
+            _clientId = configuration["LINE-Login-Setting:Channel_ID"];
+            _clientSecret = configuration["LINE-Login-Setting:Channel_Secret"];
+            _redirectUri = configuration["LINE-Login-Setting:CallbackURL"];
+        }
+
+       
+
+        public async Task<LineTokenResponseDto> GetAccessTokenAsync(string code)
         {
             using (var httpClient = new HttpClient())
             {
                 var requestContent = new FormUrlEncodedContent(new[]
                 {
-                            new KeyValuePair<string, string>("grant_type", "authorization_code"),
-                            new KeyValuePair<string, string>("code", code),
-                            new KeyValuePair<string, string>("redirect_uri", _redirectUri),
-                            new KeyValuePair<string, string>("client_id", _clientId),
-                            new KeyValuePair<string, string>("client_secret", _clientSecret)
-                        });
+            new KeyValuePair<string, string>("grant_type", "authorization_code"),
+            new KeyValuePair<string, string>("code", code),
+            new KeyValuePair<string, string>("redirect_uri", _redirectUri),
+            new KeyValuePair<string, string>("client_id", _clientId),
+            new KeyValuePair<string, string>("client_secret", _clientSecret)
+        });
 
                 var response = await httpClient.PostAsync("https://api.line.me/oauth2/v2.1/token", requestContent);
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -35,11 +45,10 @@ namespace Infrastructure.Service
                 if (response.IsSuccessStatusCode)
                 {
                     var tokenResponse = JsonConvert.DeserializeObject<LineTokenResponseDto>(responseContent);
-                    return tokenResponse.AccessToken; // Fix: Changed 'access_token' to 'AccessToken'
+                    return tokenResponse; // 這裡直接回傳整個 tokenResponse 物件，因為你需要 id_token 來獲取 email
                 }
                 else
                 {
-                    // 在這裡記錄錯誤訊息，並查看完整的回應
                     throw new Exception($"Failed to retrieve access token. Response status code: {response.StatusCode}, Response content: {responseContent}");
                 }
             }
@@ -63,6 +72,23 @@ namespace Infrastructure.Service
                 }
             }
         }
+
+        public async Task<string> GetEmailFromIdTokenAsync(string idToken)
+        {
+            var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadJwtToken(idToken);
+            var emailClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+
+            if (!string.IsNullOrEmpty(emailClaim))
+            {
+                return emailClaim;
+            }
+            else
+            {
+                throw new Exception("Email not found in id_token.");
+            }
+        }
+
     }
 
 }

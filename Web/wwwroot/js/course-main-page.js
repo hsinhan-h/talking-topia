@@ -32,7 +32,8 @@ const call = createApp({
             tutorName: [],
             bookedLessons: [],
             hasCommented: false,
-            hasTakenClass:false
+            hasTakenClass: false,
+            commentIsChecked: null
         }
     },
     computed: {
@@ -67,29 +68,49 @@ const call = createApp({
             const ratingCount = this.courseReviews.filter(review => review.CommentRating === rating).length;
             return ((ratingCount / totalReviews) * 100).toFixed(1);
         },
-
+        reviewContentChecked() {            
+            fetch('/api/OpenAI/SubmitContent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(this.newReviewContent)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // 根據返回結果進行處理
+                    if (data.success) {
+                        // 如果審查通過，允許提交評論
+                        toastr.success('評論內容很棒喔！');
+                        this.commentIsChecked=true; 
+                    } else {
+                        // 如果審查未通過，顯示警告通知
+                        toastr.warning(data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        },
         submitRating() {
+            // 檢查是否已經上課
+            if (!this.hasTakenClass) {
+                toastr.error('您尚未上過課程，無法提交評論');
+                return; // 阻止提交
+            }
+
+            // 檢查是否已經評論過
+            if (this.hasCommented) {
+                toastr.warning('您已經提交過評論，無法再次提交');
+                return; // 阻止提交
+            }
+            if (this.rating === null) {
+                toastr.warning('您尚未為課程評分!!');
+                return; // 阻止提交
+            }
+            if (this.newReviewContent === '') {
+                toastr.warning('您尚未填寫評論內容!!');
+                return; // 阻止提交
+            }
             checkLoginStatus(() => {
-                // 檢查是否已經上課
-                if (!this.hasTakenClass) {
-                    toastr.error('您尚未上過課程，無法提交評論');
-                    return; // 阻止提交
-                }
-
-                // 檢查是否已經評論過
-                if (this.hasCommented) {
-                    toastr.warning('您已經提交過評論，無法再次提交');
-                    return; // 阻止提交
-                }
-                if (this.rating === null) {
-                    toastr.warning('您尚未為課程評分!!');
-                    return; // 阻止提交
-                }
-                if (this.newReviewContent === '') {
-                    toastr.warning('您尚未填寫評論內容!!');
-                    return; // 阻止提交
-                }
-
                 // 構建 FormData 並提交 rating 資料
                 let formData = new FormData();
                 formData.append('Rating', this.rating);

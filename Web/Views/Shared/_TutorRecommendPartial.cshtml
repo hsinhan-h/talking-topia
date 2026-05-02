@@ -19,9 +19,9 @@
     </div>
     <div class="lh-tutor-card__body">
         <div class="tutor-title-and-ranking d-flex justify-between align-items-center">
-            <a class=" tutor-description-title col-8" >
+            <span class=" tutor-description-title col-8" >
                 @Model.CourseTitle
-            </a>
+            </span>
             <div class="tutor-ranking col-4 d-flex justify-content-end">
                 <i class="bi bi-star-fill pe-1"></i><span>@Model.Rating</span>
             </div>
@@ -41,7 +41,7 @@
         <div class="contact-btns-wrapper d-flex gap-1">
             <button type="button" class="lh-tutor-card__book-btn col-12"
                     onclick="window.location.href='@Url.Action("CourseMainPage", "Course", new { courseId = Model.CourseId })'">
-                預約體驗
+                查看課程
             </button>
         </div>
     </div>

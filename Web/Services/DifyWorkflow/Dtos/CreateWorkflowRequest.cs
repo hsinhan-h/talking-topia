@@ -6,7 +6,7 @@ namespace Web.Services.DifyWorkflow.Dtos
     {
         [JsonPropertyName("product_name")]
         [Required]
-        [Length(5, 30)]
+        [Length(2, 30)]
         public string ProductName { get; set; }
     }
 }

@@ -23,6 +23,13 @@
     margin: auto;
 }
 
+.lazyload {
+    background-image: url('/image/spinner_imgs/spinner-4.gif'); /*lazy loading占位圖*/
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
 /* filters */
 .lh-tutors-filter .dropdown-toggle {
     border: 1px solid var(--theme-color);
@@ -191,6 +198,7 @@
 .tutor-headshot {
     width: 83px;
     height: 83px;
+    object-fit: cover;
 }
 
 .tutor-nation-icon {

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <UserSecretsId>3cdb1dbb-d2c2-4321-8c0e-3989b5037c71</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,8 +22,18 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.25.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	<PackageReference Include="Microsoft.SemanticKernel" Version="1.25.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.25.0" />
+	<PackageReference Include="Microsoft.SemanticKernel.Connectors.MongoDB" Version="1.21.1-alpha" />
+	<PackageReference Include="Microsoft.SemanticKernel.PromptTemplates.Handlebars" Version="1.21.1" />
+	<PackageReference Include="MongoDB.Driver" Version="2.29.0" />
+	<PackageReference Include="MongoDB.Bson" Version="2.29.0" />
+	<PackageReference Include="OpenAI" Version="2.1.0-beta.1" />
+	<PackageReference Include="System.ClientModel" Version="1.2.1" />
   </ItemGroup>
 
 </Project>

@@ -10,16 +10,16 @@
 .tutor-recommend-carousel .lh-tutor-card {
     border: 1px solid var(--theme-color-light);
     border-radius: 5px;
-    width: 285px;
+    max-width: 285px;
     height: 430px;
     box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
-    cursor: pointer;
 }
 
 
 .tutor-recommend-carousel .tutor-headshot {
     width: 100px;
     height: 100px;
+    object-fit: cover;
 }
 
 .tutor-recommend-carousel .tutor-nation-icon {
@@ -78,9 +78,6 @@
     -webkit-line-clamp: 1;
 }
 
-    .tutor-description-title:hover {
-        color: var(--theme-color);
-    }
 
 .tutor-title-and-ranking .tutor-ranking {
     font-size: 14px;

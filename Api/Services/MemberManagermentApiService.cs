@@ -3,6 +3,8 @@ using ApplicationCore.Entities;
 using Api.Dtos;
 using static System.Net.Mime.MediaTypeNames;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic.FileIO;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 
 namespace Api.Services
@@ -19,6 +21,68 @@ namespace Api.Services
             _nationRepository = nationRepository;
             _applyListRepository= applyListRepository;
         }
+
+
+
+
+        //AI相關
+        public async Task<TutorHeadImgDto> GetDbImgUrlinforamtionfun(int memberId)
+        {
+            // 從資料庫取得對應的 Member
+            var member = await _memberRepository.GetByIdAsync(memberId);
+
+
+            if (member == null)
+            {
+                throw new Exception($"找不到 ID 為 {memberId} 的會員資料");
+            }
+            var headImgUrl = member.HeadShotImage;
+            var fileType = Path.GetExtension(new Uri(headImgUrl).AbsolutePath).ToLower();
+
+            // 定義支援的圖片類型
+            var supportedTypes = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+
+            if (!supportedTypes.Contains(fileType))
+            {
+                throw new Exception($"不支援的圖片類型: {fileType}");
+            }
+
+            // 解析出檔案名稱
+            var fileName = Path.GetFileName(new Uri(headImgUrl).AbsolutePath);
+
+            // 回傳包含圖片 URL、檔案名稱和會員 ID 的 DTO
+            return new TutorHeadImgDto
+            {
+                HeadImgUrl = headImgUrl,
+                MemberId = memberId,
+                FileName = fileName  // 回傳檔案名稱
+            };
+        }
+
+
+        public async Task<string> UpdateMemberImageUrlsAsync(int memberId, List<string> imageUrls)
+        {
+            var memberApplyData =
+                from member in await _memberRepository.ListAsync(m => m.MemberId == memberId)
+                join applyList in await _applyListRepository.ListAsync(a => a.MemberId == memberId)
+                on member.MemberId equals applyList.MemberId
+                select new { Member = member, ApplyList = applyList };
+
+            var memberToUpdate = memberApplyData.FirstOrDefault();
+            if (memberToUpdate == null)
+            {
+                return ("未找到該會員。");
+            }
+
+            memberToUpdate.ApplyList.AiimageUrl1 = imageUrls.Count > 0 ? imageUrls[0] : null;
+            memberToUpdate.ApplyList.AiimageUrl2 = imageUrls.Count > 1 ? imageUrls[1] : null;
+            memberToUpdate.ApplyList.AiimageUrl3 = imageUrls.Count > 2 ? imageUrls[2] : null;
+
+            await _applyListRepository.UpdateAsync(memberToUpdate.ApplyList);
+
+            return "會員資料已成功更新。";
+        }
+
 
 
 
@@ -44,8 +108,7 @@ namespace Api.Services
                 Cdate = member.Cdate.ToString("yyyy-MM-dd"),
                 NationId = member.NationId,
                 NationName = nation != null ? nation.NationName : "Unknown",
-                IsEmailConfirmed = member.IsEmailConfirmed== false?  "已停權" : "授權中",
-                
+                Totalresult = member.IsEmailConfirmed == false && member.LineUserId == null ? "已停權" : "授權中"
             };
 
             return allmemberdata.ToList();
@@ -137,6 +200,7 @@ namespace Api.Services
                 ApplyStatus = applyList?.ApplyStatus ?? false,
                 ApprovedDateTime = applyList?.ApprovedDateTime?.ToString("yyyy-MM-dd") ?? "N/A",
                 Istutor = member.IsTutor ? "已成為教師" : "尚未成為教師",
+                RequestAI = applyList != null && applyList.AiimgageStatus == true ? "需要" : "無需求",
                 ResumeStatus = applyList != null && applyList.ApplyStatus
                                 ? resumeStatus.通過申請.ToString()  
                                 : applyList?.RejectReason != null
