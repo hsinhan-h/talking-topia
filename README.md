@@ -1,7 +1,9 @@
-# TalkingTopia — 線上家教平台
+# Talking Topia — 線上家教平台
 
-> **Build School 專題作品**
-> 📎 [簡報連結](https://docs.google.com/presentation/d/1XYwkSV8wAzxgSSdiYePEwL_ryG7Bd-YxK6nZWQ-yzPA/edit?slide=id.g3014e9f0da1_3_75#slide=id.g3014e9f0da1_3_75)
+**Build School 專題作品**
+
+[![簡報](https://img.shields.io/badge/簡報-個人負責模組%20%26%20使用技術說明-blue?style=flat-square&logo=google-slides&logoColor=white)](https://docs.google.com/presentation/d/1XYwkSV8wAzxgSSdiYePEwL_ryG7Bd-YxK6nZWQ-yzPA/edit?slide=id.g3014e9f0da1_3_75#slide=id.g3014e9f0da1_3_75)
+[![後台專案](https://img.shields.io/badge/後台專案-Talking%20Topia%20Admin-6f42c1?style=flat-square&logo=github&logoColor=white)](https://github.com/hsinhan-h/talking-topia-admin)
 
 ---
 
