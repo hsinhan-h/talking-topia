@@ -1,48 +1,130 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Launch Web (https)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build-web",
-      "program": "${workspaceFolder}/Web/bin/Debug/net8.0/Web.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/Web",
-      "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-      },
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "https://localhost:7263;http://localhost:5180"
-      },
-      "sourceFileMap": {
-        "/Views": "${workspaceFolder}/Web/Views"
-      }
-    },
-    {
-      "name": "Launch Api (https)",
-      "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build-api",
-      "program": "${workspaceFolder}/Api/bin/Debug/net8.0/Api.dll",
-      "args": [],
-      "cwd": "${workspaceFolder}/Api",
-      "stopAtEntry": false,
-      "serverReadyAction": {
-        "action": "openExternally",
-        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
-      },
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    {
-      "name": "Attach to Process",
-      "type": "coreclr",
-      "request": "attach"
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Api",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: Api",
+            "program": "${workspaceFolder}/Api/bin/Debug/net8.0/Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Api",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "uriFormat": "https://localhost:7204/swagger",
+                "pattern": "Now listening on:"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7204;http://localhost:5036"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Api - Hot Reload",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/Api/Api.csproj",
+                "--non-interactive",
+                "run",
+                "--no-restore",
+                "--",
+                "--urls=https://localhost:7204;http://localhost:5036"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "uriFormat": "https://localhost:7204/swagger",
+                "pattern": "Now listening on:"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7204;http://localhost:5036"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Web",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build: Web",
+            "program": "${workspaceFolder}/Web/bin/Debug/net8.0/Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Web",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "uriFormat": "https://localhost:7263/",
+                "pattern": "Now listening on:"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7263;http://localhost:5180"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Web - Hot Reload",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "dotnet",
+            "args": [
+                "watch",
+                "--project",
+                "${workspaceFolder}/Web/Web.csproj",
+                "--non-interactive",
+                "run",
+                "--no-restore",
+                "--",
+                "--urls=https://localhost:7263;http://localhost:5180"
+            ],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "integratedTerminal",
+            "serverReadyAction": {
+                "action": "openExternally",
+                "uriFormat": "https://localhost:7263/",
+                "pattern": "Now listening on:"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "ASPNETCORE_URLS": "https://localhost:7263;http://localhost:5180"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "附加至程序 (Attach)",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "同時啟動所有 Web 專案",
+            "configurations": ["Api", "Web"],
+            "stopAll": true
+        },
+        {
+            "name": "同時啟動所有 Web 專案 (Hot Reload)",
+            "configurations": ["Api - Hot Reload", "Web - Hot Reload"],
+            "stopAll": true
+        }
+    ]
 }
